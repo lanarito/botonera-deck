@@ -82,77 +82,75 @@
 <div class="screw" style="left:10px;top:10px"></div><div class="screw" style="right:10px;top:10px"></div>
 <div class="screw" style="left:10px;bottom:10px"></div><div class="screw" style="right:10px;bottom:10px"></div>
 
-<div id="grid">
-  <!-- APPS (abrir en la PC) -->
-  <div class="key" data-id="discord" data-off="DISCORD" style="--c:#5865F2">
-    <img class="ico" src="icons/discord.png" alt=""></div>
-
-  <div class="key" data-id="simhub" data-off="SIMHUB">
-    <img class="ico" src="icons/simhub.png" alt=""></div>
-
-  <div class="key" data-id="youtube" data-off="YOUTUBE">
-    <img class="ico" src="icons/youtube.png" alt=""></div>
-
-  <div class="key" data-id="google" data-off="GOOGLE">
-    <img class="ico" src="icons/google.png" alt=""></div>
-
-  <div class="key" data-id="ac" data-off="ASSETTO">
-    <img class="ico" src="icons/assetto.png" alt=""></div>
-
-  <div class="key" data-id="setuphub" data-off="SETUPHUB">
-    <svg class="ico" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg></div>
-
-  <div class="key" data-id="antigravity" data-off="ANTIGRAVITY">
-    <img class="ico" src="icons/antigravity.png" alt=""></div>
-
-  <!-- CONTROLES -->
-  <div class="key" data-id="mic" data-on="MIC MUTEADO" data-off="MIC" data-lamp="1" style="--c:#5865F2">
-    <svg class="ico" viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg></div>
-
-  <div class="key" data-id="deaf" data-on="SIN AUDIO" data-off="AURICULARES" data-lamp="1" style="--c:#5865F2">
-    <svg class="ico" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h2v-8H5v-1a7 7 0 0 1 14 0v1h-3v8h2a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z"/></svg></div>
-
-  <div class="key" data-id="voldn" data-off="VOLUMEN −">
-    <svg class="ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg></div>
-
-  <div class="key" data-id="volup" data-off="VOLUMEN +">
-    <svg class="ico" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></div>
-</div>
+<div id="grid"></div>
 <div id="dot"></div>
 <script>
+  // ES5 + XMLHttpRequest (compatible con el navegador viejo de la tablet)
   var grid = document.getElementById('grid');
-  // rellenar hasta 15 con teclas LIBRE
-  for (var i = grid.children.length; i < 15; i++) {
-    var e = document.createElement('div'); e.className = 'key empty'; e.setAttribute('data-off', 'LIBRE');
-    e.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>';
-    grid.appendChild(e);
+  var dot = document.getElementById('dot');
+  var keys = [];
+
+  function xhrGet(url, cb) {
+    var x = new XMLHttpRequest();
+    x.open('GET', url, true);
+    x.onreadystatechange = function () { if (x.readyState === 4) { cb((x.status >= 200 && x.status < 300) ? null : 1, x.responseText); } };
+    try { x.send(); } catch (e) { cb(1, ''); }
   }
-  // armar cada tecla: hueco + cuerpo + cara (con el icono que ya tiene)
-  var keys = document.querySelectorAll('.key');
-  for (var i = 0; i < keys.length; i++) {
-    var k = keys[i];
-    var icon = k.innerHTML;
-    k.innerHTML = '<div class="well"></div><div class="cap"><div class="face">' +
-      (k.getAttribute('data-lamp') ? '<div class="lamp"></div>' : '') +
-      '<div class="halo"></div>' + icon +
-      '<div class="lbl">' + k.getAttribute('data-off') + '</div></div></div>';
+  function iconHtml(icon) {
+    if (!icon) return '';
+    if (icon.indexOf('svg:') === 0) return '<svg class="ico" viewBox="0 0 24 24"><path d="' + icon.substring(4) + '"/></svg>';
+    return '<img class="ico" src="' + icon + '" alt="">';
   }
 
-  var dot = document.getElementById('dot');
+  function buildGrid(buttons) {
+    var i, b, k, e;
+    for (i = 0; i < buttons.length; i++) {
+      b = buttons[i];
+      k = document.createElement('div');
+      k.className = 'key';
+      k.setAttribute('data-id', b.id || '');
+      k.setAttribute('data-off', b.label || '');
+      if (b.labelOn) k.setAttribute('data-on', b.labelOn);
+      if (b.toggle) k.setAttribute('data-lamp', '1');
+      k.innerHTML = iconHtml(b.icon);
+      grid.appendChild(k);
+    }
+    for (i = grid.children.length; i < 15; i++) {
+      e = document.createElement('div'); e.className = 'key empty'; e.setAttribute('data-off', 'LIBRE');
+      e.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>';
+      grid.appendChild(e);
+    }
+    keys = document.querySelectorAll('.key');
+    for (i = 0; i < keys.length; i++) {
+      k = keys[i];
+      var icon = k.innerHTML;
+      k.innerHTML = '<div class="well"></div><div class="cap"><div class="face">' +
+        (k.getAttribute('data-lamp') ? '<div class="lamp"></div>' : '') +
+        '<div class="halo"></div>' + icon +
+        '<div class="lbl">' + (k.getAttribute('data-off') || '') + '</div></div></div>';
+      k.addEventListener('touchstart', down, { passive: false });
+      k.addEventListener('touchend', up); k.addEventListener('touchcancel', up);
+      k.addEventListener('mousedown', down); k.addEventListener('mouseup', up); k.addEventListener('mouseleave', up);
+    }
+    req('/state');
+    setInterval(function () { req('/state'); }, 1500);
+  }
+
   function apply(s) {
     dot.className = 'ok';
     for (var i = 0; i < keys.length; i++) {
       var k = keys[i], id = k.getAttribute('data-id');
-      if (id && (id in s)) {
+      if (id && s.hasOwnProperty(id)) {
         k.classList.toggle('on', !!s[id]);
-        k.querySelector('.lbl').textContent = s[id] ? k.getAttribute('data-on') : k.getAttribute('data-off');
+        var lbl = k.querySelector('.lbl'); if (lbl) lbl.textContent = s[id] ? k.getAttribute('data-on') : k.getAttribute('data-off');
       }
     }
   }
-  function req(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(apply).catch(function () { dot.className = ''; }); }
+  function req(url) { xhrGet(url, function (err, txt) { if (err) { dot.className = ''; return; } var s; try { s = JSON.parse(txt); } catch (e) { return; } apply(s); }); }
+
   function down(ev) {
     var k = ev.currentTarget; ev.preventDefault();
-    if (k.classList.contains('empty')) return;
+    if (k.className.indexOf('empty') >= 0) return;
     k.classList.add('pressed');
     if (navigator.vibrate) navigator.vibrate(15);
     if (k.getAttribute('data-lamp')) {
@@ -162,17 +160,17 @@
     var id = k.getAttribute('data-id'); if (id) req('/press?id=' + id);
   }
   function up(ev) { ev.currentTarget.classList.remove('pressed'); }
-  for (var i = 0; i < keys.length; i++) {
-    keys[i].addEventListener('touchstart', down, { passive: false });
-    keys[i].addEventListener('touchend', up); keys[i].addEventListener('touchcancel', up);
-    keys[i].addEventListener('mousedown', down); keys[i].addEventListener('mouseup', up); keys[i].addEventListener('mouseleave', up);
-  }
+
   // pantalla completa al primer toque (saca la barra del navegador)
   function goFS() { var el = document.documentElement; var r = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen; if (r) { try { r.call(el); } catch (e) {} } }
   document.addEventListener('touchend', goFS, { once: true });
   document.addEventListener('click', goFS, { once: true });
 
-  req('/state'); setInterval(function () { req('/state'); }, 1500);
+  // arrancar: traer los botones desde /config
+  xhrGet('/config', function (err, txt) {
+    var cfg; try { cfg = JSON.parse(txt); } catch (e) { cfg = null; }
+    buildGrid(cfg && cfg.buttons ? cfg.buttons : []);
+  });
 </script>
 </body>
 </html>

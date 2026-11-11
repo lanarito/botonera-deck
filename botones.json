@@ -1,0 +1,16 @@
+{
+  "cols": 5,
+  "buttons": [
+    { "id": "discord",     "label": "DISCORD",     "icon": "icons/discord.png",     "type": "launch", "val": "%LOCALAPPDATA%\\Discord\\Update.exe", "args": "--processStart Discord.exe" },
+    { "id": "simhub",      "label": "SIMHUB",      "icon": "icons/simhub.png",      "type": "launch", "val": "C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe" },
+    { "id": "youtube",     "label": "YOUTUBE",     "icon": "icons/youtube.png",     "type": "url",    "val": "https://www.youtube.com" },
+    { "id": "google",      "label": "GOOGLE",      "icon": "icons/google.png",      "type": "url",    "val": "https://www.google.com" },
+    { "id": "ac",          "label": "ASSETTO",     "icon": "icons/assetto.png",     "type": "launch", "val": "%LOCALAPPDATA%\\AcTools Content Manager\\Content Manager.exe" },
+    { "id": "setuphub",    "label": "SETUPHUB",    "icon": "svg:M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z", "type": "launch", "val": "" },
+    { "id": "antigravity", "label": "ANTIGRAVITY", "icon": "icons/antigravity.png", "type": "launch", "val": "%LOCALAPPDATA%\\Programs\\Antigravity\\Antigravity.exe" },
+    { "id": "mic",  "label": "MIC",         "labelOn": "MIC MUTEADO", "toggle": true, "icon": "svg:M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z", "type": "key", "val": "ctrl+shift+alt+f9" },
+    { "id": "deaf", "label": "AURICULARES", "labelOn": "SIN AUDIO",   "toggle": true, "icon": "svg:M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h2v-8H5v-1a7 7 0 0 1 14 0v1h-3v8h2a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z", "type": "key", "val": "ctrl+shift+alt+f10" },
+    { "id": "voldn", "label": "VOLUMEN −", "icon": "svg:M4 9v6h4l5 5V4L8 9H4zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z", "type": "vol", "val": "down" },
+    { "id": "volup", "label": "VOLUMEN +", "icon": "svg:M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z", "type": "vol", "val": "up" }
+  ]
+}
