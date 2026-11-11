@@ -209,3 +209,24 @@ Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), 
   →/↓ = anterior, ciclan entre las pestañas visibles; desde PITS (oculta) un deslizamiento vuelve a CARRERA. Animación de entrada 0,16 s.
   Para que no se dispare un botón al deslizar: con el dedo la **acción sale al levantar** (si se movió >18 px no cuenta como toque).
   Con mouse sigue siendo al apretar. Probado con `adb input swipe` en las 4 direcciones.
+
+## 13. [CLAUDE PC del simu — 2026-11-11] Página PANTALLA + más botones de vista ✅
+Íconos nuevos: Twemoji 72 px (`web/icons/em_*.png`, de cdn.jsdelivr.net/gh/jdecked/twemoji). AC controls.ini (backup `tablet/controls.ini.bak_antes_pantalla_*`).
+| Página | Botón | Tecla | Acción AC/CSP/CM |
+|---|---|---|---|
+| CARRERA | MIRAR ATRÁS | W | `GLANCEBACK` (ya era W) |
+| CARRERA | ADELANTE / ATRÁS | F14 / F15 | `__EXT_SEAT_FORWARD` / `__EXT_SEAT_BACKWARD` (siguen también en joystick izq.) |
+| CARRERA | VISTA ORIG. | F16 | `__EXT_SEAT_RESET` |
+| PANTALLA | NOMBRES | L | `DRIVER_NAMES` (ya era L) |
+| PANTALLA | APPS / HUD | H | `HIDE_APPS` (ya era H) — oculta/muestra todas las apps (CMRT, etc.) |
+| PANTALLA | OCULTAR TODO | Ctrl+Shift+Alt+H | `__EXT_HIDE_UI` (CSP, ya estaba) |
+| PANTALLA | CAMBIAR APPS | F13 | `__CM_NEXT_APPS_DESKTOP` (siguiente escritorio de apps) |
+| PANTALLA | ESPEJO | F11 | `__EXT_VIRTUAL_MIRROR` (ya era F11) |
+| PANTALLA | LÍNEA IDEAL | I | `IDEAL_LINE` |
+| PANTALLA | DAÑOS | J | `SHOW_DAMAGE` |
+| PANTALLA | CAPTURA | F8 | captura de AC |
+| PANTALLA | GUARDAR CLIP | Ctrl+Shift+S | `__EXT_SAVE_CLIP` (ya estaba) |
+| PANTALLA | PAUSA | F19 | `__EXT_SIM_PAUSE` |
+| PANTALLA | SETUP AUTO | F17 | `__CM_SETUP_CAR` |
+- Las teclas NUEVAS (F13–F17, F19) se activan al **reiniciar AC** (estaba abierto al asignarlas).
+- Ojo preexistente: en AC `HIDE_DAMAGE` también usa **Q** (igual que MIRAR ←).
