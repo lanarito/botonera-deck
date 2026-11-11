@@ -32,7 +32,8 @@ class Botonera
 
     // ===== Modelo de configuracion (botones.json) =====
     public class BtnDef { public string id = "", label = "", labelOn = "", icon = "", type = "", val = "", args = ""; public bool toggle = false; }
-    public class Config { public int cols = 5; public BtnDef[] buttons = new BtnDef[0]; }
+    public class Page { public string name = ""; public BtnDef[] buttons = new BtnDef[0]; }
+    public class Config { public Page[] pages = new Page[0]; }
     class Act { public string type, val, args; public Act(string t, string v, string a) { type = t; val = v; args = a; } }
 
     static readonly object CfgLk = new object();
@@ -71,7 +72,8 @@ class Botonera
         add("deaf", "AURICULARES", "SIN AUDIO", "svg:M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h2v-8H5v-1a7 7 0 0 1 14 0v1h-3v8h2a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z", "key", "ctrl+shift+alt+f10", "", true);
         add("voldn", "VOLUMEN \u2212", "", "svg:M4 9v6h4l5 5V4L8 9H4zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z", "vol", "down", "", false);
         add("volup", "VOLUMEN +", "", "svg:M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z", "vol", "up", "", false);
-        var c = new Config(); c.cols = 5; c.buttons = L.ToArray(); return c;
+        var pg = new Page(); pg.name = "INICIO"; pg.buttons = L.ToArray();
+        var c = new Config(); c.pages = new Page[] { pg }; return c;
     }
 
     static void LoadConfig(bool force)
@@ -86,13 +88,17 @@ class Botonera
                 if (!force && mt == CfgMtime) return;
                 string txt = File.ReadAllText(CfgPath);
                 Config c = new JavaScriptSerializer().Deserialize<Config>(txt);
-                if (c == null || c.buttons == null) { Log("Config invalida, ignorada."); return; }
+                if (c == null || c.pages == null) { Log("Config invalida, ignorada."); return; }
                 var map = new Dictionary<string, Act>();
-                foreach (var b in c.buttons)
+                foreach (var pg in c.pages)
                 {
-                    if (b == null || b.id == null || b.id.Length == 0) continue;
-                    map[b.id] = new Act(b.type ?? "", b.val ?? "", b.args ?? "");
-                    if (b.toggle) lock (Lk) { if (!Toggles.ContainsKey(b.id)) Toggles[b.id] = false; }
+                    if (pg == null || pg.buttons == null) continue;
+                    foreach (var b in pg.buttons)
+                    {
+                        if (b == null || b.id == null || b.id.Length == 0) continue;
+                        map[b.id] = new Act(b.type ?? "", b.val ?? "", b.args ?? "");
+                        if (b.toggle) lock (Lk) { if (!Toggles.ContainsKey(b.id)) Toggles[b.id] = false; }
+                    }
                 }
                 Buttons = map; CfgMtime = mt;
                 Log("Config cargada: " + map.Count + " botones.");
@@ -106,19 +112,23 @@ class Botonera
     {
         t = t.Trim().ToLowerInvariant();
         switch (t) { case "ctrl": return CTRL; case "shift": return SHIFT; case "alt": return ALT; case "win": return WIN;
-                     case "space": return 0x20; case "enter": return 0x0D; case "tab": return 0x09; case "esc": return 0x1B; }
+                     case "space": return 0x20; case "enter": case "return": return 0x0D; case "tab": return 0x09; case "esc": case "escape": return 0x1B;
+                     case "up": return 0x26; case "down": return 0x28; case "left": return 0x25; case "right": return 0x27;
+                     case "backspace": return 0x08; case "del": case "delete": return 0x2E; case "home": return 0x24; case "end": return 0x23;
+                     case "pageup": return 0x21; case "pagedown": return 0x22; }
         if (t.Length == 1) { char c = t[0]; if (c >= 'a' && c <= 'z') return (byte)(0x41 + (c - 'a')); if (c >= '0' && c <= '9') return (byte)(0x30 + (c - '0')); }
         if (t.Length >= 2 && t[0] == 'f') { int n; if (int.TryParse(t.Substring(1), out n) && n >= 1 && n <= 24) return (byte)(0x70 + (n - 1)); }
         return 0;
     }
+    static bool Ext(byte k) { return (k >= 0x21 && k <= 0x2E) || k == VOL_UP || k == VOL_DN || k == VOL_MUTE; }
     static void SendKeys(string combo)
     {
         var keys = new List<byte>();
         foreach (var p in combo.Split('+')) { byte k = Vk(p); if (k != 0) keys.Add(k); }
         if (keys.Count == 0) return;
-        foreach (var k in keys) keybd_event(k, (byte)MapVirtualKey(k, 0), 0, UIntPtr.Zero);
+        foreach (var k in keys) keybd_event(k, (byte)MapVirtualKey(k, 0), Ext(k) ? EXTENDED : 0, UIntPtr.Zero);
         Thread.Sleep(30);
-        for (int i = keys.Count - 1; i >= 0; i--) keybd_event(keys[i], (byte)MapVirtualKey(keys[i], 0), KEYUP, UIntPtr.Zero);
+        for (int i = keys.Count - 1; i >= 0; i--) keybd_event(keys[i], (byte)MapVirtualKey(keys[i], 0), KEYUP | (Ext(keys[i]) ? EXTENDED : 0), UIntPtr.Zero);
     }
     static void Volume(string dir)
     {

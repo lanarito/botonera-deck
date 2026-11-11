@@ -22,10 +22,14 @@
 
   #grid {
     --size: 116px;   /* medida fija del boton (cuadrado) — cambiar aca y todos respetan */
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 22px; overflow-y: auto;
+    position: absolute; top: 58px; left: 0; right: 0; bottom: 0; padding: 18px 22px 22px; overflow-y: auto;
     display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: 20px;
     justify-content: center; align-content: start;
   }
+  #tabs { position: absolute; top: 0; left: 0; right: 0; height: 58px; display: flex; gap: 10px; align-items: center; justify-content: center; z-index: 3; }
+  .tab { padding: 7px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d;
+    background: linear-gradient(180deg, #23262c, #15171b); border: 1px solid #2c313a; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+  .tab.active { color: #fff; border-color: #5865F2; box-shadow: 0 0 16px -2px #5865F2, inset 0 0 12px -5px #5865F2; text-shadow: 0 0 8px #5865F2; }
 
   .key { --c: #5865F2; --leak: .6; width: var(--size); height: var(--size); position: relative; touch-action: manipulation; }
   .well { position: absolute; top:0;left:0;right:0;bottom:0; border-radius: 26px;
@@ -82,6 +86,7 @@
 <div class="screw" style="left:10px;top:10px"></div><div class="screw" style="right:10px;top:10px"></div>
 <div class="screw" style="left:10px;bottom:10px"></div><div class="screw" style="right:10px;bottom:10px"></div>
 
+<div id="tabs"></div>
 <div id="grid"></div>
 <div id="dot"></div>
 <script>
@@ -132,8 +137,6 @@
       k.addEventListener('touchend', up); k.addEventListener('touchcancel', up);
       k.addEventListener('mousedown', down); k.addEventListener('mouseup', up); k.addEventListener('mouseleave', up);
     }
-    req('/state');
-    setInterval(function () { req('/state'); }, 1500);
   }
 
   function apply(s) {
@@ -166,10 +169,33 @@
   document.addEventListener('touchend', goFS, { once: true });
   document.addEventListener('click', goFS, { once: true });
 
-  // arrancar: traer los botones desde /config
+  // paginas + pestanas
+  var pages = [];
+  function showPage(idx) {
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].className = (i === idx ? 'tab active' : 'tab');
+    grid.innerHTML = '';
+    buildGrid(pages[idx] && pages[idx].buttons ? pages[idx].buttons : []);
+  }
+  function buildTabs() {
+    var tb = document.getElementById('tabs'); tb.innerHTML = '';
+    for (var i = 0; i < pages.length; i++) {
+      (function (idx) {
+        var t = document.createElement('div'); t.className = 'tab'; t.textContent = pages[idx].name || ('P' + (idx + 1));
+        t.addEventListener('click', function () { showPage(idx); });
+        t.addEventListener('touchstart', function (ev) { ev.preventDefault(); showPage(idx); }, { passive: false });
+        tb.appendChild(t);
+      })(i);
+    }
+  }
+  // arrancar: traer las paginas desde /config
   xhrGet('/config', function (err, txt) {
     var cfg; try { cfg = JSON.parse(txt); } catch (e) { cfg = null; }
-    buildGrid(cfg && cfg.buttons ? cfg.buttons : []);
+    pages = (cfg && cfg.pages) ? cfg.pages : [];
+    buildTabs();
+    showPage(0);
+    req('/state');
+    setInterval(function () { req('/state'); }, 1500);
   });
 </script>
 </body>

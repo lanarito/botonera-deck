@@ -128,3 +128,44 @@ Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe 
 - Editar un `label` en `botones.json` → recargar la página en la tablet → debe reflejarlo (sin recompilar).
 
 **Pendiente que sigue (según #5):** Páginas Inicio/Carrera/Datos. Y en la PC del simu: rutas reales + atajos Discord + ícono SetupHub (ahora todo editable en `botones.json`).
+
+---
+
+## 10. [CLAUDE notebook — 2026-11-11] Botonera COMPLETA: 3 páginas + pit pad + flechas ✅
+
+**Pedido del usuario:** "hacé todo todo, dejalo listo para ponerlo en el simu y que funcione." Hecho.
+
+**Páginas (en `botones.json`, con pestañas arriba — INICIO / CARRERA / PITS):**
+- **INICIO (15):** Discord, SimHub, Assetto(Content Manager), SetupHub, Antigravity, YouTube, Google, **Spotify, Steam, Gmail, WhatsApp** (nuevas), MIC, AURICULARES, VOL−, VOL+.
+- **CARRERA (11):** controles de AC en **F13–F24** (ver tabla). Se bindean en AC.
+- **PITS (7):** PEDIR PIT (F24) + **pad de flechas** (↑↓←→ = teclas reales), OK (Enter), SALIR (Esc) → navega el pit menu **sin bindear nada**.
+
+**Botonera.cs:** ahora soporta **flechas / enter / esc** (con flag EXTENDED) y config por **páginas**. `index.html` dibuja pestañas + página activa desde `/config` (ES5/XHR). Visual intacto (neón azul). **Probado:** `/config` devuelve INICIO(15)/CARRERA(11)/PITS(7) y compila OK. *(La tablet se desconectó por USB antes de la captura en vivo; al reconectar se auto-reabre.)*
+
+### 🎮 Bindear en Assetto Corsa (Opciones → Controles → asignar estas teclas):
+| Botón (CARRERA) | Tecla | Función de AC a asignar |
+|---|---|---|
+| LUCES | F13 | Headlights |
+| RÁFAGA | F14 | Flash lights |
+| BALIZAS | F15 | Hazards (si existe / CSP) |
+| LIMPIA | F16 | Wiper (CSP) |
+| LIMITADOR | F17 | Pit limiter |
+| CÁMARA | F18 | Change camera |
+| MIRAR ← | F19 | Look left |
+| MIRAR → | F20 | Look right |
+| OCULTAR | F21 | Hide apps / HUD |
+| TC | F22 | Traction control |
+| ABS | F23 | ABS |
+| PEDIR PIT | F24 | Request pit / abrir pit menu |
+
+Pit pad (página PITS): **↑↓←→ mandan flechas reales**, OK=Enter, SALIR=Esc. Si tu pit menu usa otras teclas, se cambian en `botones.json` (campo `val`).
+
+### ✅ DEPLOY en la PC del simulador (checklist):
+1. `git pull` del repo en la PC del simu.
+2. En **`botones.json`** poner las **rutas reales** de: Discord, Content Manager (Assetto), SetupHub.
+3. En **AC → Controles**: asignar **F13–F24** según la tabla.
+4. En **Discord → Atajos**: `Ctrl+Shift+Alt+F9` = mute, `Ctrl+Shift+Alt+F10` = deafen.
+5. (Opcional) correr `instalar_autoarranque.ps1`.
+6. Enchufar la tablet + correr `Botonera.exe` → se conecta y abre sola.
+
+**Pendiente futuro:** página DATOS (telemetría), volumen por-app (Core Audio), ícono real de SetupHub, Twitch (su favicon falló). Nada bloqueante.
