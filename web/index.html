@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Botonera</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: Roboto, Arial, sans-serif; }
+  /* placa de aluminio cepillado oscuro */
+  body {
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, rgba(0,0,0,0) 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.10) 0 2px, rgba(0,0,0,0) 2px 7px),
+      linear-gradient(165deg, #23262b 0%, #16181c 45%, #0e1012 100%);
+  }
+  .screw { position: absolute; width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #8a8f97 0%, #4b4f56 45%, #22252a 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.9), inset 0 -1px 2px rgba(0,0,0,.6), 0 0 0 3px rgba(0,0,0,.35); }
+  .screw::after { content: ""; position: absolute; left: 4px; right: 4px; top: 10px; height: 2px; background: #1a1c20;
+    box-shadow: 0 1px 0 rgba(255,255,255,.18); transform: rotate(35deg); }
+  #grid {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 38px 40px;
+    display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 30px;
+  }
+  @media (orientation: portrait) { #grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); } }
+
+  .key { --c: #5865F2; --leak: .45; position: relative; }
+  /* hueco en la placa + luz que se escapa por debajo de la tecla */
+  .well { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 26px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0) 0%, #040506 75%), #040506;
+    box-shadow: inset 0 8px 14px rgba(0,0,0,.95), inset 0 -1px 0 rgba(255,255,255,.07), 0 1px 0 rgba(255,255,255,.09), 0 -1px 0 rgba(0,0,0,.6); }
+  .well::after { content: ""; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 2px; border-radius: 22px;
+    box-shadow: 0 0 16px 2px var(--c), inset 0 0 14px 2px var(--c); opacity: var(--leak); transition: opacity .08s; }
+  /* tecla: cuerpo (paredes laterales) */
+  .cap { position: absolute; top: 7px; left: 7px; right: 7px; bottom: 7px; border-radius: 21px;
+    background: linear-gradient(180deg, #3a3e45 0%, #24272c 55%, #15171a 100%);
+    box-shadow: 0 10px 14px rgba(0,0,0,.75), 0 2px 3px rgba(0,0,0,.8);
+    transform: translateY(0); transition: transform .06s ease-out, box-shadow .06s; }
+  /* tecla: cara superior, levemente concava */
+  .face { position: absolute; top: 2px; left: 4px; right: 4px; bottom: 13px; border-radius: 17px;
+    background:
+      radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.13) 0%, rgba(255,255,255,0) 55%),
+      radial-gradient(ellipse at 50% 60%, #22252b 0%, #2a2e35 70%, #33373f 100%);
+    box-shadow: inset 0 2px 1px rgba(255,255,255,.16), inset 0 -3px 5px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.35);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+    transition: bottom .06s ease-out; }
+  /* difusor: el ventanita de acrilico detras del icono */
+  .halo { position: absolute; width: 62%; height: 62%; top: 12%; border-radius: 50%;
+    background: radial-gradient(circle, var(--c) 0%, rgba(0,0,0,0) 65%); opacity: .16; transition: opacity .08s; }
+  .face svg { position: relative; width: 44%; height: 46%; fill: var(--c);
+    filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 9px var(--c)); transition: filter .08s; }
+  .lbl { position: relative; margin-top: 10px; font-size: 19px; font-weight: 700; letter-spacing: 2px;
+    color: #8e949d; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,0); }
+  .lamp { position: absolute; top: 12px; left: 50%; width: 30px; height: 6px; margin-left: -15px; border-radius: 3px;
+    background: #1b1d21; box-shadow: inset 0 1px 2px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06); }
+
+  /* apretado: la tecla baja, las paredes se achican y el LED brilla mas */
+  .key.pressed { --leak: .95; }
+  .key.pressed .cap { transform: translateY(8px); box-shadow: 0 2px 4px rgba(0,0,0,.85); }
+  .key.pressed .face { bottom: 5px; }
+  .key.pressed .halo { opacity: .38; }
+  .key.pressed svg { filter: drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 16px var(--c)) brightness(1.35); }
+
+  /* activo (ej. microfono silenciado): LED rojo */
+  .key.on { --c: #ff2d2d; --leak: .8; }
+  .key.on .lamp { background: #ff3030; box-shadow: 0 0 6px #ff3030, 0 0 14px #ff3030, inset 0 1px 1px rgba(255,255,255,.5); }
+  .key.on .lbl { color: #ffb3b3; }
+
+  .key.empty { --leak: 0; }
+  .key.empty svg { fill: #33373e; filter: none; }
+  .key.empty .halo { opacity: 0; }
+  .key.empty .lbl { color: #464b53; }
+  #dot { position: absolute; right: 14px; bottom: 10px; width: 9px; height: 9px; border-radius: 50%; background: #c33; box-shadow: 0 0 8px #c33; }
+  #dot.ok { background: #2c4; box-shadow: 0 0 8px #2c4; }
+</style>
+</head>
+<body>
+<div class="screw" style="left:10px;top:10px"></div><div class="screw" style="right:10px;top:10px"></div>
+<div class="screw" style="left:10px;bottom:10px"></div><div class="screw" style="right:10px;bottom:10px"></div>
+<div id="grid">
+  <div class="key" data-id="mic" data-on="MIC MUTEADO" data-off="MIC DISCORD" data-lamp="1"
+       data-svg="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"></div>
+  <div class="key" data-id="deaf" data-on="SIN AUDIO" data-off="AURICULARES" data-lamp="1"
+       data-svg="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h2v-8H5v-1a7 7 0 0 1 14 0v1h-3v8h2a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z"></div>
+  <div class="key" data-id="voldn" data-off="VOLUMEN −" style="--c:#19d3ff"
+       data-svg="M4 9v6h4l5 5V4L8 9H4zm12.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"></div>
+  <div class="key" data-id="volup" data-off="VOLUMEN +" style="--c:#19d3ff"
+       data-svg="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"></div>
+</div>
+<div id="dot"></div>
+<script>
+  var grid = document.getElementById('grid');
+  for (var i = grid.children.length; i < 12; i++) {
+    var e = document.createElement('div'); e.className = 'key empty'; e.setAttribute('data-off', 'LIBRE');
+    e.setAttribute('data-svg', 'M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z'); grid.appendChild(e);
+  }
+  // armar cada tecla: hueco + cuerpo + cara (difusor, icono, texto, LED)
+  var keys = document.querySelectorAll('.key');
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    k.innerHTML = '<div class="well"></div><div class="cap"><div class="face">' +
+      (k.getAttribute('data-lamp') ? '<div class="lamp"></div>' : '') +
+      '<div class="halo"></div><svg viewBox="0 0 24 24"><path d="' + k.getAttribute('data-svg') + '"/></svg>' +
+      '<div class="lbl">' + k.getAttribute('data-off') + '</div></div></div>';
+  }
+
+  // "clic" mecanico corto (sonido sintetizado, sin archivos)
+  var ac = null;
+  function click() {
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      var n = ac.createBuffer(1, ac.sampleRate * 0.025, ac.sampleRate), d = n.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6);
+      var s = ac.createBufferSource(); s.buffer = n;
+      var f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2400; f.Q.value = 1.2;
+      var g = ac.createGain(); g.gain.value = 0.55;
+      s.connect(f); f.connect(g); g.connect(ac.destination); s.start();
+    } catch (x) {}
+  }
+
+  var dot = document.getElementById('dot');
+  function apply(s) {
+    dot.className = 'ok';
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i], id = k.getAttribute('data-id');
+      if (id && (id in s)) {
+        k.classList.toggle('on', !!s[id]);
+        k.querySelector('.lbl').textContent = s[id] ? k.getAttribute('data-on') : k.getAttribute('data-off');
+      }
+    }
+  }
+  function req(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(apply).catch(function () { dot.className = ''; }); }
+  function down(ev) {
+    var k = ev.currentTarget; ev.preventDefault();
+    if (k.classList.contains('empty')) return;
+    k.classList.add('pressed'); click();
+    if (navigator.vibrate) navigator.vibrate(15);
+    var id = k.getAttribute('data-id'); if (id) req('/press?id=' + id);
+  }
+  function up(ev) { ev.currentTarget.classList.remove('pressed'); }
+  for (var i = 0; i < keys.length; i++) {
+    keys[i].addEventListener('touchstart', down, { passive: false });
+    keys[i].addEventListener('touchend', up); keys[i].addEventListener('touchcancel', up);
+    keys[i].addEventListener('mousedown', down); keys[i].addEventListener('mouseup', up); keys[i].addEventListener('mouseleave', up);
+  }
+  req('/state'); setInterval(function () { req('/state'); }, 1500);
+</script>
+</body>
+</html>

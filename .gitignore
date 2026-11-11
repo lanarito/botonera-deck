@@ -1,0 +1,8 @@
+# pesados / se bajan de internet (ver README)
+tablet/rom/
+tablet/platform-tools/
+tablet/heimdall/
+tablet/heimdall.zip
+tablet/apk/
+# estado en vivo
+estado_botonera.txt
