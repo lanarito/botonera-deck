@@ -152,12 +152,12 @@ Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe 
 | CÁMARA | F18 | Change camera |
 | MIRAR ← | F19 | Look left |
 | MIRAR → | F20 | Look right |
-| OCULTAR | F21 | Hide apps / HUD |
 | FOV + / FOV − | Numpad + / − | FOV acercar/alejar (CSP) |
 | CÁM ↑ / CÁM ↓ | Numpad 8 / 2 | Mover cámara (CSP) |
-| PEDIR PIT | F24 | Request pit / abrir pit menu |
-| PITS (🏁) | — | navega a la página PITS (no manda tecla) |
-| Pad PITS ↑↓←→ / OK / SALIR | flechas / Enter / Esc | navegar el pit menu (teclas reales) |
+| **PITS (🏁)** | **F24** | **Abrir el menú de boxes** (request pit / pit menu). Bindealo a lo que abra el menú para cambiar gomas/combustible. Además te lleva al pad de flechas. |
+| Pad PITS ↑↓←→ / OK / SALIR | flechas / Enter / Esc | navegar el menú de boxes (teclas reales, no se bindean) |
+
+> Cambios: se sacó **OCULTAR**, se sacaron los **4 tornillos** de la UI, y el botón **PITS** ahora manda **F24** (abre el menú) + abre el pad (adentro hay: 🔙 volver a CARRERA, D-pad de flechas, OK, SALIR).
 
 Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), OK=Enter, SALIR=Esc. Si tu pit menu usa otras teclas, se cambian en `botones.json` (campo `val`). En CARRERA hay un botón **PITS** que salta a esa página (navegación, no manda tecla).
 

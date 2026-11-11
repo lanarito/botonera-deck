@@ -88,9 +88,6 @@
 </style>
 </head>
 <body>
-<div class="screw" style="left:10px;top:10px"></div><div class="screw" style="right:10px;top:10px"></div>
-<div class="screw" style="left:10px;bottom:10px"></div><div class="screw" style="right:10px;bottom:10px"></div>
-
 <div id="tabs"></div>
 <div id="pages"></div>
 <div id="dot"></div>
@@ -123,6 +120,7 @@
       if (b.labelOn) k.setAttribute('data-on', b.labelOn);
       if (b.toggle) k.setAttribute('data-lamp', '1');
       if (b.type === 'page') k.setAttribute('data-page', b.val || '');
+      if (b.goto) k.setAttribute('data-goto', b.goto);
     }
     var icon = empty ? '<svg class="ico" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>' : iconHtml(b.icon);
     var lbl = label ? ('<div class="lbl">' + label + '</div>') : '';
@@ -196,6 +194,7 @@
       var lbl = k.querySelector('.lbl'); if (lbl) lbl.textContent = on ? k.getAttribute('data-on') : k.getAttribute('data-off');
     }
     var id = k.getAttribute('data-id'); if (id) req('/press?id=' + id);
+    var goto = k.getAttribute('data-goto'); if (goto) goToPageByName(goto);
   }
   function up(ev) { ev.currentTarget.classList.remove('pressed'); }
 

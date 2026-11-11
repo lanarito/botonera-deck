@@ -26,12 +26,11 @@
         { "id": "ac_camara",    "label": "CÁMARA",   "icon": "icons/em_camera.png",   "type": "key",  "val": "f18" },
         { "id": "ac_mirar_izq", "label": "MIRAR ←", "icon": "icons/em_lookleft.png", "type": "key",  "val": "f19" },
         { "id": "ac_mirar_der", "label": "MIRAR →", "icon": "icons/em_lookright.png","type": "key",  "val": "f20" },
-        { "id": "ac_ocultar",   "label": "OCULTAR",  "icon": "icons/em_hide.png",     "type": "key",  "val": "f21" },
         { "id": "ac_fov_mas",   "label": "FOV +",    "icon": "icons/em_fovplus.png",  "type": "key",  "val": "num+" },
         { "id": "ac_fov_menos", "label": "FOV −",    "icon": "icons/em_fovminus.png", "type": "key",  "val": "num-" },
         { "id": "ac_cam_sube",  "label": "CÁM ↑",   "icon": "icons/em_camup.png",    "type": "key",  "val": "num8" },
         { "id": "ac_cam_baja",  "label": "CÁM ↓",   "icon": "icons/em_camdown.png",  "type": "key",  "val": "num2" },
-        { "id": "go_pits",      "label": "PITS",     "icon": "icons/em_flag.png",     "type": "page", "val": "PITS" }
+        { "id": "go_pits",      "label": "PITS",     "icon": "icons/em_flag.png",     "type": "key",  "val": "f24", "goto": "PITS" }
       ]
     },
     {
@@ -39,7 +38,6 @@
       "hidden": true,
       "buttons": [
         { "id": "pit_volver", "label": "CARRERA",   "icon": "icons/em_back.png",  "type": "page", "val": "CARRERA" },
-        { "id": "pit_pedir",  "label": "PEDIR PIT", "icon": "icons/em_wrench.png","type": "key",  "val": "f24" },
         { "id": "pit_ok",     "label": "OK",        "icon": "icons/em_check.png", "type": "key",  "val": "enter" },
         { "id": "pit_esc",    "label": "SALIR",     "icon": "icons/em_cross.png", "type": "key",  "val": "esc" },
         { "id": "pit_up",     "label": "", "dpad": true, "icon": "icons/em_up.png",    "type": "key", "val": "up" },
