@@ -221,7 +221,9 @@ class Botonera
 
     // ===== adb: rearma el reverse solo + se recupera del replug =====
     // force-stop antes: si Jelly reusa una pestaña vieja la pagina queda en blanco (visto en la PC del simu 2026-11-11)
-    static readonly string OpenPage = "shell \"am force-stop org.lineageos.jelly; sleep 1; am start -a android.intent.action.VIEW -d http://localhost:" + Port + "/index.html -n org.lineageos.jelly/.MainActivity\"";
+    // Se abre en "Webview Kiosk" (F-Droid, uk.nktnet.webviewkiosk): pantalla completa SIN barras desde el arranque
+    // (configurado en la tablet: Home URL = esta pagina, Address bar/Floating toolbar = Hidden, Immersive = Always On, Inset = None).
+    static readonly string OpenPage = "shell \"am force-stop org.lineageos.jelly; am force-stop uk.nktnet.webviewkiosk; sleep 1; am start -a android.intent.action.VIEW -d http://localhost:" + Port + "/index.html -n uk.nktnet.webviewkiosk/.MainActivity\"";
     static void AdbLoop()
     {
         bool lastOk = false;

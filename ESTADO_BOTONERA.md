@@ -198,3 +198,14 @@ Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), 
 - **Autoarranque instalado** (`shell:startup\Botonera.lnk`). Corriendo.
 - **Fix:** al reabrir sola, Jelly a veces quedaba en BLANCO (reusaba pestaña vieja) → `OpenPage` ahora hace `am force-stop org.lineageos.jelly` antes del `am start`. Probado: abre bien sola.
 - **Falta (usuario):** atajos en Discord (`Ctrl+Shift+Alt+F9` mute, `Ctrl+Shift+Alt+F10` deafen). Probar en pista: cámara, mirar, FOV, cámara ↑↓, PITS (Quick Pits menu de CSP) + flechas/Enter/Esc.
+
+## 12. [CLAUDE PC del simu — 2026-11-11] Sin barra + deslizar entre páginas ✅
+- **Barra "Botonera" eliminada para siempre:** Jelly no permite pantalla completa sin un toque. Se instaló **Webview Kiosk**
+  (F-Droid `uk.nktnet.webviewkiosk` v0.26.26, APK en `tablet/apk/webviewkiosk.apk`, gratis/open source, sin marca de agua).
+  Config en la tablet: Home URL = `http://localhost:8790/index.html`; Appearance → Floating Toolbar = **Hidden**, Address Bar = **Hidden**,
+  Immersive = **Always On**, WebView Inset = **None**. `Botonera.cs` (`OpenPage`) ahora abre ESA app (force-stop antes).
+  OJO: con la barra flotante oculta, para volver a los ajustes de la app hay que reinstalar o cambiar el modo (no hay botón visible).
+- **Deslizar en cualquier dirección y desde cualquier lugar (también arrancando sobre un botón):** ←/↑ = página siguiente,
+  →/↓ = anterior, ciclan entre las pestañas visibles; desde PITS (oculta) un deslizamiento vuelve a CARRERA. Animación de entrada 0,16 s.
+  Para que no se dispare un botón al deslizar: con el dedo la **acción sale al levantar** (si se movió >18 px no cuenta como toque).
+  Con mouse sigue siendo al apretar. Probado con `adb input swipe` en las 4 direcciones.

@@ -29,6 +29,14 @@
   #pages { position: absolute; top: 58px; left: 0; right: 0; bottom: 0; overflow-y: auto; }
   .page { display: none; padding: 16px 22px 24px; }
   .page.active { display: block; }
+  /* deslizar entre paginas: entrada corta desde el lado del gesto */
+  html, body { touch-action: none; }
+  .page.active.inL { animation: inL .16s ease-out; } .page.active.inR { animation: inR .16s ease-out; }
+  .page.active.inU { animation: inU .16s ease-out; } .page.active.inD { animation: inD .16s ease-out; }
+  @keyframes inL { from { transform: translateX(60px);  opacity: .2; } to { transform: none; opacity: 1; } }
+  @keyframes inR { from { transform: translateX(-60px); opacity: .2; } to { transform: none; opacity: 1; } }
+  @keyframes inU { from { transform: translateY(50px);  opacity: .2; } to { transform: none; opacity: 1; } }
+  @keyframes inD { from { transform: translateY(-50px); opacity: .2; } to { transform: none; opacity: 1; } }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: 20px; justify-content: center; align-content: start; }
   .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: 14px; justify-content: center; margin: 26px auto 0; }
   .dpad .up { grid-column: 2; grid-row: 1; }
@@ -151,8 +159,10 @@
     return pageEl;
   }
 
-  function showPage(idx) {
-    var ps = pagesEl.children; for (var i = 0; i < ps.length; i++) ps[i].className = (i === idx ? 'page active' : 'page');
+  var cur = 0, lastVis = 0;
+  function showPage(idx, anim) {
+    cur = idx; if (pages[idx] && !pages[idx].hidden) lastVis = idx;
+    var ps = pagesEl.children; for (var i = 0; i < ps.length; i++) ps[i].className = (i === idx ? ('page active' + (anim ? ' ' + anim : '')) : 'page');
     var ts = tabsEl.children; for (i = 0; i < ts.length; i++) ts[i].className = (parseInt(ts[i].getAttribute('data-pageidx'), 10) === idx ? 'tab active' : 'tab');
   }
   function goToPageByName(name) { for (var i = 0; i < pages.length; i++) { if ((pages[i].name || '') === name) { showPage(i); return; } } }
@@ -182,10 +192,40 @@
   }
   function req(url) { xhrGet(url, function (err, txt) { if (err) { dot.className = ''; return; } var s; try { s = JSON.parse(txt); } catch (e) { return; } apply(s); }); }
 
+  // ---- deslizar: izq/arriba = pagina siguiente, der/abajo = anterior (entre las pestañas visibles) ----
+  var sx = 0, sy = 0, moved = false;
+  function visList() { var v = []; for (var i = 0; i < pages.length; i++) if (!pages[i].hidden) v.push(i); return v; }
+  function swipe(dir) {   // dir: +1 siguiente, -1 anterior
+    var v = visList(); if (!v.length) return;
+    var base = (pages[cur] && pages[cur].hidden) ? lastVis : cur;   // desde PITS (oculta) vuelve a contar desde CARRERA
+    var p = v.indexOf(base); if (p < 0) p = 0;
+    var n = (pages[cur] && pages[cur].hidden) ? base : v[(p + dir + v.length) % v.length];
+    return n;
+  }
+  document.addEventListener('touchstart', function (ev) { var t = ev.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; }, { passive: true });
+  document.addEventListener('touchmove', function (ev) {
+    var t = ev.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (!moved && (dx * dx + dy * dy) > 18 * 18) { moved = true; var pr = document.querySelectorAll('.key.pressed'); for (var i = 0; i < pr.length; i++) pr[i].classList.remove('pressed'); }
+  }, { passive: true });
+  document.addEventListener('touchend', function (ev) {
+    if (!moved) return;
+    var t = ev.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy, ax = Math.abs(dx), ay = Math.abs(dy);
+    if (Math.max(ax, ay) < 60) return;
+    var n, anim;
+    if (ax > ay) { n = swipe(dx < 0 ? 1 : -1); anim = dx < 0 ? 'inL' : 'inR'; }
+    else { n = swipe(dy < 0 ? 1 : -1); anim = dy < 0 ? 'inU' : 'inD'; }
+    if (n !== undefined && n !== cur) { showPage(n, anim); if (navigator.vibrate) navigator.vibrate(10); }
+  }, { passive: true });
+
+  // con el dedo: el boton se hunde al tocar y la accion sale al LEVANTAR (si no fue un deslizamiento)
   function down(ev) {
     var k = ev.currentTarget; ev.preventDefault();
     if (k.className.indexOf('empty') >= 0) return;
     k.classList.add('pressed');
+    if (ev.type === 'touchstart') { k._t = true; return; }
+    fire(k);
+  }
+  function fire(k) {
     if (navigator.vibrate) navigator.vibrate(15);
     var page = k.getAttribute('data-page');
     if (page) { goToPageByName(page); return; }
@@ -196,7 +236,11 @@
     var id = k.getAttribute('data-id'); if (id) req('/press?id=' + id);
     var goto = k.getAttribute('data-goto'); if (goto) goToPageByName(goto);
   }
-  function up(ev) { ev.currentTarget.classList.remove('pressed'); }
+  function up(ev) {
+    var k = ev.currentTarget; k.classList.remove('pressed');
+    if (ev.type === 'touchend' && k._t && !moved) fire(k);
+    k._t = false;
+  }
 
   // pantalla completa al primer toque
   function goFS() { var el = document.documentElement; var r = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen; if (r) { try { r.call(el); } catch (e) {} } }
