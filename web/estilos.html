@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Elegí el estilo</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+  html,body{margin:0;height:100%;font-family:Roboto,Arial,sans-serif;color:#cdd3db;overflow-x:hidden;}
+  body{background:linear-gradient(160deg,#1c1f24,#111316 60%,#0b0c0e);}
+  h1{font-size:18px;font-weight:700;letter-spacing:1px;text-align:center;margin:14px 0 2px;color:#e6eaf0;}
+  .sub{text-align:center;font-size:12px;color:#7d848e;margin-bottom:12px;}
+  .deck{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 16px 24px;}
+  @media (max-width:760px){.deck{grid-template-columns:repeat(2,1fr);}}
+  .card{position:relative;background:linear-gradient(180deg,#191c21,#131519);border:1px solid #2a2e35;border-radius:16px;
+    padding:18px 12px 12px;display:flex;flex-direction:column;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  .num{position:absolute;top:8px;left:10px;width:22px;height:22px;border-radius:50%;background:#2b3038;color:#aeb6c0;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid #3a404a;}
+  .name{margin-top:14px;font-size:14px;font-weight:800;color:#e7ecf2;text-align:center;letter-spacing:.5px;}
+  .desc{font-size:11px;color:#767d87;text-align:center;margin-top:2px;}
+  .stage{width:150px;height:150px;position:relative;display:flex;align-items:center;justify-content:center;}
+  .btn{cursor:pointer;}
+  svg{pointer-events:none;}
+  .tag{font-size:10px;font-weight:800;letter-spacing:1.5px;margin-top:5px;color:#c8ccd3;text-shadow:0 1px 2px rgba(0,0,0,.6);position:relative;}
+
+  /* ============ 1) PLACA ALUMINIO (ACTUAL) ============ */
+  .v1{--c:#19d3ff;--leak:.45;width:132px;height:132px;position:relative;}
+  .v1 .well{position:absolute;top:0;right:0;bottom:0;left:0;border-radius:24px;background:radial-gradient(ellipse at 50% 100%,rgba(0,0,0,0),#040506 75%),#040506;
+    box-shadow:inset 0 8px 14px rgba(0,0,0,.95),inset 0 -1px 0 rgba(255,255,255,.07),0 1px 0 rgba(255,255,255,.09);}
+  .v1 .well::after{content:"";position:absolute;top:6px;right:6px;bottom:2px;left:6px;border-radius:20px;box-shadow:0 0 16px 2px var(--c),inset 0 0 14px 2px var(--c);opacity:var(--leak);transition:opacity .08s;}
+  .v1 .cap{position:absolute;top:7px;right:7px;bottom:7px;left:7px;border-radius:19px;background:linear-gradient(180deg,#3a3e45,#24272c 55%,#15171a);
+    box-shadow:0 10px 14px rgba(0,0,0,.75),0 2px 3px rgba(0,0,0,.8);transition:transform .06s,box-shadow .06s;}
+  .v1 .face{position:absolute;top:2px;left:4px;right:4px;bottom:13px;border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 22%,rgba(255,255,255,.13),rgba(255,255,255,0) 55%),radial-gradient(ellipse at 50% 60%,#22252b,#2a2e35 70%,#33373f);
+    box-shadow:inset 0 2px 1px rgba(255,255,255,.16),inset 0 -3px 5px rgba(0,0,0,.45);transition:bottom .06s;}
+  .v1 .lamp{width:30px;height:6px;border-radius:3px;background:#1b1d21;margin-bottom:8px;box-shadow:inset 0 1px 2px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.06);}
+  .v1 svg{width:38%;height:38%;fill:var(--c);filter:drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 9px var(--c));}
+  .v1 .tag{color:#aeb6c0;}
+  .v1.pressed{--leak:.95;}
+  .v1.pressed .cap{transform:translateY(8px);box-shadow:0 2px 4px rgba(0,0,0,.85);}
+  .v1.pressed .face{bottom:5px;}
+  .v1.pressed svg{filter:drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 16px var(--c)) brightness(1.4);}
+
+  /* ============ 2) CRISTAL ESMERILADO ============ */
+  .v2{--c:#5865F2;width:132px;height:132px;border-radius:22px;position:relative;
+    background:linear-gradient(160deg,#20242b,#0d0f12);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 20px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;transition:transform .07s;}
+  .v2::before{content:"";position:absolute;top:0;left:0;right:0;height:46%;border-radius:22px 22px 40% 40%;
+    background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0));pointer-events:none;}
+  .v2 .glow{position:absolute;width:70%;height:70%;border-radius:50%;background:radial-gradient(circle,var(--c),transparent 62%);opacity:.3;transition:opacity .08s;}
+  .v2 svg{width:40%;height:40%;fill:#dfe3ff;filter:drop-shadow(0 0 5px var(--c)) drop-shadow(0 0 14px var(--c));position:relative;}
+  .v2.pressed{transform:scale(.97);}
+  .v2.pressed .glow{opacity:.8;}
+  .v2.pressed svg{filter:drop-shadow(0 0 7px var(--c)) drop-shadow(0 0 22px var(--c)) brightness(1.3);}
+
+  /* ============ 3) METAL + ARO LED (start/stop) ============ */
+  .v3{--c:#ff3b30;width:132px;height:132px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;
+    background:#0c0d0f;box-shadow:0 0 0 2px #26292e,0 10px 18px rgba(0,0,0,.6);}
+  .v3 .ring{position:absolute;top:6px;right:6px;bottom:6px;left:6px;border-radius:50%;box-shadow:0 0 10px 1px var(--c),inset 0 0 8px 1px var(--c);opacity:.55;transition:opacity .08s;}
+  .v3 .knob{position:absolute;top:16px;right:16px;bottom:16px;left:16px;border-radius:50%;
+    background:repeating-conic-gradient(from 0deg,#8e949c 0 3deg,#c9ced4 3deg 6deg),#b4b9c0;
+    box-shadow:inset 0 2px 3px rgba(255,255,255,.5),inset 0 -6px 10px rgba(0,0,0,.6),0 6px 10px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .06s,box-shadow .06s;}
+  .v3 .knob::before{content:"";position:absolute;top:0;right:0;bottom:0;left:0;border-radius:50%;background:radial-gradient(circle at 50% 28%,rgba(255,255,255,.65),rgba(255,255,255,0) 55%);}
+  .v3 svg{width:34%;height:34%;fill:#2b2e33;position:relative;}
+  .v3 .tag{color:#3a3d42;}
+  .v3.pressed .ring{opacity:1;}
+  .v3.pressed .knob{transform:translateY(3px) scale(.985);box-shadow:inset 0 2px 3px rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.7);}
+
+  /* ============ 4) KEYCAP MECÁNICO (RGB underglow) ============ */
+  .v4{--c:#ffd24a;width:128px;height:128px;position:relative;display:flex;align-items:center;justify-content:center;}
+  .v4 .under{position:absolute;top:4px;right:4px;bottom:4px;left:4px;border-radius:14px;background:#000;box-shadow:0 0 18px 4px var(--c);opacity:.5;transition:opacity .08s;}
+  .v4 .key{position:absolute;top:10px;right:10px;bottom:10px;left:10px;border-radius:11px;background:linear-gradient(180deg,#34373d,#202327 60%,#171a1d);
+    box-shadow:0 8px 10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .06s;}
+  .v4 .top{position:absolute;top:6px;right:8px;bottom:12px;left:8px;border-radius:9px;
+    background:radial-gradient(ellipse at 50% 120%,#3b3f46,#2a2d33 60%);box-shadow:inset 0 3px 6px rgba(255,255,255,.08),inset 0 -5px 8px rgba(0,0,0,.5);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .v4 svg{width:38%;height:38%;fill:#f0e4c6;filter:drop-shadow(0 0 4px var(--c));}
+  .v4 .tag{color:#b9b09a;}
+  .v4.pressed .key{transform:translateY(6px);}
+  .v4.pressed .under{opacity:1;}
+
+  /* ============ 5) ARCADE TRANSLÚCIDO ============ */
+  .v5{--c:#19e36b;width:130px;height:130px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;
+    background:conic-gradient(#c9ced4,#7d828a,#c9ced4,#6f747b,#c9ced4),#9aa0a8;box-shadow:0 8px 14px rgba(0,0,0,.6);}
+  .v5 .dome{position:absolute;top:12px;right:12px;bottom:12px;left:12px;border-radius:50%;
+    background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.55),var(--c) 45%,#0b7a39 100%);
+    box-shadow:inset 0 -8px 16px rgba(0,0,0,.45),inset 0 6px 12px rgba(255,255,255,.4),0 0 16px 1px var(--c);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .06s,box-shadow .06s;}
+  .v5 svg{width:34%;height:34%;fill:rgba(255,255,255,.95);filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));}
+  .v5 .tag{color:rgba(255,255,255,.9);}
+  .v5.pressed .dome{transform:scale(.94);box-shadow:inset 0 -4px 10px rgba(0,0,0,.5),inset 0 3px 8px rgba(255,255,255,.3),0 0 26px 3px var(--c);}
+
+  /* ============ 6) CARBONO RACING ============ */
+  .v6{--c:#ff9f1a;width:132px;height:132px;border-radius:16px;position:relative;display:flex;align-items:center;justify-content:center;
+    background:
+      repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 4px,rgba(0,0,0,0) 4px 8px),
+      repeating-linear-gradient(-45deg,rgba(0,0,0,.5) 0 4px,rgba(0,0,0,0) 4px 8px),
+      linear-gradient(135deg,#202225,#141517);
+    box-shadow:inset 0 0 0 2px #2b2e33,0 10px 18px rgba(0,0,0,.6);}
+  .v6 .pill{position:absolute;top:24px;right:18px;bottom:24px;left:18px;border-radius:10px;
+    background:linear-gradient(180deg,#e23b3b,#a81d1d 55%,#7c1414);
+    box-shadow:inset 0 2px 2px rgba(255,255,255,.4),inset 0 -4px 8px rgba(0,0,0,.5),0 6px 10px rgba(0,0,0,.55);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .06s,box-shadow .06s;}
+  .v6 .pill::after{content:"";position:absolute;left:6px;right:6px;top:4px;height:34%;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0));}
+  .v6 svg{width:40%;height:40%;fill:#fff;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5));position:relative;}
+  .v6 .tag{color:#fff;}
+  .v6 .led{position:absolute;top:8px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);opacity:.75;transition:opacity .08s;}
+  .v6.pressed .pill{transform:translateY(3px) scale(.99);box-shadow:inset 0 2px 2px rgba(255,255,255,.3),inset 0 -2px 5px rgba(0,0,0,.5),0 2px 4px rgba(0,0,0,.6);}
+  .v6.pressed .led{opacity:1;}
+</style>
+</head>
+<body>
+<h1>Elegí el estilo del botón</h1>
+<div class="sub">todos con el ícono de Discord · tocá para sentirlos · decime el número</div>
+<div class="deck">
+
+  <div class="card"><div class="num">1</div>
+    <div class="stage"><div class="btn v1"><div class="well"></div><div class="cap"><div class="face">
+      <div class="lamp"></div>
+      <svg viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"/></svg>
+      <span class="tag">DISCORD</span></div></div></div></div>
+    <div class="name">1 · Placa Aluminio</div><div class="desc">el actual · retroiluminado</div>
+  </div>
+
+  <div class="card"><div class="num">2</div>
+    <div class="stage"><div class="btn v2"><div class="glow"></div>
+      <svg viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"/></svg>
+      <span class="tag">DISCORD</span></div></div>
+    <div class="name">2 · Cristal Esmerilado</div><div class="desc">vidrio con brillo</div>
+  </div>
+
+  <div class="card"><div class="num">3</div>
+    <div class="stage"><div class="btn v3"><div class="ring"></div><div class="knob">
+      <svg viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"/></svg>
+      <span class="tag">DISCORD</span></div></div></div>
+    <div class="name">3 · Metal + Aro LED</div><div class="desc">estilo start/stop</div>
+  </div>
+
+  <div class="card"><div class="num">4</div>
+    <div class="stage"><div class="btn v4"><div class="under"></div><div class="key"><div class="top">
+      <svg viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"/></svg>
+      <span class="tag">DISCORD</span></div></div></div></div>
+    <div class="name">4 · Keycap Mecánico</div><div class="desc">RGB por abajo</div>
+  </div>
+
+  <div class="card"><div class="num">5</div>
+    <div class="stage"><div class="btn v5"><div class="dome">
+      <svg viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"/></svg>
+      <span class="tag">DISCORD</span></div></div></div>
+    <div class="name">5 · Arcade Translúcido</div><div class="desc">domo de goma</div>
+  </div>
+
+  <div class="card"><div class="num">6</div>
+    <div class="stage"><div class="btn v6"><div class="led"></div><div class="pill">
+      <svg viewBox="0 0 24 24"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.7 17.3a17.2 17.2 0 0 0 5.2 2.7l1.1-1.8a11 11 0 0 1-1.8-.9l.4-.3a12.3 12.3 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.1 1.8a17.2 17.2 0 0 0 5.2-2.7c.5-4.5-.8-8.4-3-12zM8.7 15c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2zm6.6 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2z"/></svg>
+      <span class="tag">DISCORD</span></div></div></div>
+    <div class="name">6 · Carbono Racing</div><div class="desc">fibra + botón rojo</div>
+  </div>
+
+</div>
+<script>
+  var ac=null;
+  function click(){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
+    var n=ac.createBuffer(1,ac.sampleRate*0.025,ac.sampleRate),d=n.getChannelData(0);
+    for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,6);
+    var s=ac.createBufferSource();s.buffer=n;var f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=2400;f.Q.value=1.2;
+    var g=ac.createGain();g.gain.value=.5;s.connect(f);f.connect(g);g.connect(ac.destination);s.start();}catch(x){}}
+  var btns=document.querySelectorAll('.btn');
+  function down(e){e.preventDefault();e.currentTarget.classList.add('pressed');click();if(navigator.vibrate)navigator.vibrate(15);}
+  function up(e){e.currentTarget.classList.remove('pressed');}
+  for(var i=0;i<btns.length;i++){
+    btns[i].addEventListener('touchstart',down,{passive:false});btns[i].addEventListener('touchend',up);btns[i].addEventListener('touchcancel',up);
+    btns[i].addEventListener('mousedown',down);btns[i].addEventListener('mouseup',up);btns[i].addEventListener('mouseleave',up);
+  }
+</script>
+</body>
+</html>

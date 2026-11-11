@@ -1,7 +1,8 @@
-// Botonera para la tablet (GT-P5110) por USB.
+// Botonera para la tablet (por USB).
 // - Sirve la pagina web (web\index.html) en http://localhost:8790/
 // - Mantiene "adb reverse tcp:8790" para que la tablet llegue a la PC por el cable USB (sin WiFi).
-// - Cada toque llega como /press?id=xxx y se convierte en teclas en la PC.
+// - Cada toque llega como /press?id=xxx y ejecuta su accion: abrir programa, abrir URL, teclas o volumen.
+// Las acciones de cada boton se definen abajo en "Buttons" (facil de editar; a futuro: botones.json).
 // Compilar: csc /nologo /target:winexe /optimize /out:Botonera.exe Botonera.cs
 using System;
 using System.Collections.Generic;
@@ -23,31 +24,92 @@ class Botonera
     [DllImport("user32.dll")] static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
     [DllImport("user32.dll")] static extern uint MapVirtualKey(uint code, uint mapType);
     const uint KEYUP = 0x2, EXTENDED = 0x1;
+    const byte CTRL = 0x11, SHIFT = 0x10, ALT = 0x12, WIN = 0x5B;
+    const byte VOL_UP = 0xAF, VOL_DN = 0xAE, VOL_MUTE = 0xAD;
 
-    const byte CTRL = 0x11, SHIFT = 0x10, ALT = 0x12;
+    class Act { public string type, val, args; public Act(string t, string v, string a) { type = t; val = v; args = a; } }
 
-    // id -> teclas (modificadores primero, la ultima es la tecla principal)
-    static readonly Dictionary<string, byte[]> Actions = new Dictionary<string, byte[]>
+    // ===== BOTONES: id -> accion. Tipos: launch (programa), url (pagina), key (teclas), vol (up/down/mute) =====
+    // OJO: las rutas de programas que NO estan en esta PC (Discord, Content Manager, SetupHub) se ajustan
+    //      cuando estemos en la PC del simulador. Si una ruta no existe, el boton simplemente no hace nada.
+    static readonly Dictionary<string, Act> Buttons = new Dictionary<string, Act>
     {
-        { "mic",   new byte[] { CTRL, SHIFT, ALT, 0x78 } }, // Ctrl+Shift+Alt+F9  -> Discord: silenciar microfono (asignar en Discord)
-        { "deaf",  new byte[] { CTRL, SHIFT, ALT, 0x79 } }, // Ctrl+Shift+Alt+F10 -> Discord: ensordecer (asignar en Discord)
-        { "voldn", new byte[] { 0xAE } },                   // bajar volumen de Windows
-        { "volup", new byte[] { 0xAF } },                   // subir volumen de Windows
+        { "discord",     new Act("launch", @"%LOCALAPPDATA%\Discord\Update.exe", "--processStart Discord.exe") },
+        { "simhub",      new Act("launch", @"C:\Program Files (x86)\SimHub\SimHubWPF.exe", null) },
+        { "youtube",     new Act("url",    "https://www.youtube.com", null) },
+        { "google",      new Act("url",    "https://www.google.com", null) },
+        { "ac",          new Act("launch", @"%LOCALAPPDATA%\AcTools Content Manager\Content Manager.exe", null) },
+        { "setuphub",    new Act("launch", "", null) },   // ruta pendiente (PC del simu)
+        { "antigravity", new Act("launch", @"%LOCALAPPDATA%\Programs\Antigravity\Antigravity.exe", null) },
+        { "mic",         new Act("key",    "ctrl+shift+alt+f9", null) },   // asignar en Discord: silenciar micro
+        { "deaf",        new Act("key",    "ctrl+shift+alt+f10", null) },  // asignar en Discord: ensordecer
+        { "voldn",       new Act("vol",    "down", null) },
+        { "volup",       new Act("vol",    "up", null) },
     };
     static readonly Dictionary<string, bool> Toggles = new Dictionary<string, bool> { { "mic", false }, { "deaf", false } };
     static readonly object Lk = new object();
 
-    static void Log(string m)
+    static void Log(string m) { try { File.AppendAllText(LogPath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " | " + m + Environment.NewLine); } catch { } }
+
+    static byte Vk(string t)
     {
-        try { File.WriteAllText(LogPath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " | " + m + Environment.NewLine); } catch { }
+        t = t.Trim().ToLowerInvariant();
+        switch (t) { case "ctrl": return CTRL; case "shift": return SHIFT; case "alt": return ALT; case "win": return WIN;
+                     case "space": return 0x20; case "enter": return 0x0D; case "tab": return 0x09; case "esc": return 0x1B; }
+        if (t.Length == 1) { char c = t[0]; if (c >= 'a' && c <= 'z') return (byte)(0x41 + (c - 'a')); if (c >= '0' && c <= '9') return (byte)(0x30 + (c - '0')); }
+        if (t.Length >= 2 && t[0] == 'f') { int n; if (int.TryParse(t.Substring(1), out n) && n >= 1 && n <= 24) return (byte)(0x70 + (n - 1)); }
+        return 0;
     }
 
-    static void Press(byte[] keys)
+    static void SendKeys(string combo)
     {
-        foreach (var k in keys) keybd_event(k, (byte)MapVirtualKey(k, 0), (k == 0xAE || k == 0xAF) ? EXTENDED : 0, UIntPtr.Zero);
+        var keys = new List<byte>();
+        foreach (var p in combo.Split('+')) { byte k = Vk(p); if (k != 0) keys.Add(k); }
+        if (keys.Count == 0) return;
+        foreach (var k in keys) keybd_event(k, (byte)MapVirtualKey(k, 0), 0, UIntPtr.Zero);
         Thread.Sleep(30);
-        for (int i = keys.Length - 1; i >= 0; i--)
-            keybd_event(keys[i], (byte)MapVirtualKey(keys[i], 0), KEYUP | ((keys[i] == 0xAE || keys[i] == 0xAF) ? EXTENDED : 0), UIntPtr.Zero);
+        for (int i = keys.Count - 1; i >= 0; i--) keybd_event(keys[i], (byte)MapVirtualKey(keys[i], 0), KEYUP, UIntPtr.Zero);
+    }
+
+    static void Volume(string dir)
+    {
+        byte k = dir == "up" ? VOL_UP : (dir == "mute" ? VOL_MUTE : VOL_DN);
+        keybd_event(k, (byte)MapVirtualKey(k, 0), EXTENDED, UIntPtr.Zero);
+        keybd_event(k, (byte)MapVirtualKey(k, 0), EXTENDED | KEYUP, UIntPtr.Zero);
+    }
+
+    static void Launch(string path, string args)
+    {
+        try
+        {
+            string p = Environment.ExpandEnvironmentVariables(path ?? "");
+            if (string.IsNullOrEmpty(p)) { Log("launch vacio (sin configurar)"); return; }
+            var psi = new ProcessStartInfo(p) { UseShellExecute = true };
+            if (!string.IsNullOrEmpty(args)) psi.Arguments = args;
+            try { string d = Path.GetDirectoryName(p); if (!string.IsNullOrEmpty(d) && Directory.Exists(d)) psi.WorkingDirectory = d; } catch { }
+            Process.Start(psi);
+            Log("launch OK: " + p);
+        }
+        catch (Exception e) { Log("launch ERROR " + path + ": " + e.Message); }
+    }
+
+    static void OpenUrl(string url)
+    {
+        try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); Log("url OK: " + url); }
+        catch (Exception e) { Log("url ERROR " + url + ": " + e.Message); }
+    }
+
+    static void DoAction(string id)
+    {
+        Act a; if (!Buttons.TryGetValue(id, out a)) { Log("id desconocido: " + id); return; }
+        switch (a.type)
+        {
+            case "launch": Launch(a.val, a.args); break;
+            case "url":    OpenUrl(a.val); break;
+            case "key":    SendKeys(a.val); break;
+            case "vol":    Volume(a.val); break;
+        }
+        lock (Lk) { if (Toggles.ContainsKey(id)) Toggles[id] = !Toggles[id]; }
     }
 
     static string StateJson()
@@ -78,12 +140,7 @@ class Botonera
             if (path == "/press")
             {
                 string id = c.Request.QueryString["id"] ?? "";
-                byte[] keys;
-                if (Actions.TryGetValue(id, out keys))
-                {
-                    Press(keys);
-                    lock (Lk) { if (Toggles.ContainsKey(id)) Toggles[id] = !Toggles[id]; }
-                }
+                if (id.Length > 0) DoAction(id);
                 Send(c.Response, 200, "application/json", Encoding.UTF8.GetBytes(StateJson()));
                 return;
             }
@@ -93,13 +150,12 @@ class Botonera
             string full = Path.GetFullPath(Path.Combine(WebDir, rel));
             if (!full.StartsWith(WebDir, StringComparison.OrdinalIgnoreCase) || !File.Exists(full)) { Send(c.Response, 404, "text/plain", Encoding.UTF8.GetBytes("no")); return; }
             string ext = Path.GetExtension(full).ToLowerInvariant();
-            string type = ext == ".html" ? "text/html; charset=utf-8" : ext == ".svg" ? "image/svg+xml" : ext == ".png" ? "image/png" : ext == ".css" ? "text/css" : ext == ".js" ? "application/javascript" : "application/octet-stream";
+            string type = ext == ".html" ? "text/html; charset=utf-8" : ext == ".svg" ? "image/svg+xml" : ext == ".png" ? "image/png" : ext == ".jpg" || ext == ".jpeg" ? "image/jpeg" : ext == ".css" ? "text/css" : ext == ".js" ? "application/javascript" : ext == ".json" ? "application/json" : "application/octet-stream";
             Send(c.Response, 200, type, File.ReadAllBytes(full));
         }
         catch { try { c.Response.Abort(); } catch { } }
     }
 
-    // Mantiene el tunel USB: la tablet abre http://localhost:8790 y llega a esta PC por el cable.
     static void AdbLoop()
     {
         bool lastOk = false;
