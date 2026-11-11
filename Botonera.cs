@@ -115,7 +115,10 @@ class Botonera
                      case "space": return 0x20; case "enter": case "return": return 0x0D; case "tab": return 0x09; case "esc": case "escape": return 0x1B;
                      case "up": return 0x26; case "down": return 0x28; case "left": return 0x25; case "right": return 0x27;
                      case "backspace": return 0x08; case "del": case "delete": return 0x2E; case "home": return 0x24; case "end": return 0x23;
-                     case "pageup": return 0x21; case "pagedown": return 0x22; }
+                     case "pageup": return 0x21; case "pagedown": return 0x22;
+                     case "num+": case "numadd": return 0x6B; case "num-": case "numsub": return 0x6D;
+                     case "num*": return 0x6A; case "num/": return 0x6F; case "num.": return 0x6E; }
+        if (t.Length == 4 && t[0] == 'n' && t[1] == 'u' && t[2] == 'm') { char d = t[3]; if (d >= '0' && d <= '9') return (byte)(0x60 + (d - '0')); }
         if (t.Length == 1) { char c = t[0]; if (c >= 'a' && c <= 'z') return (byte)(0x41 + (c - 'a')); if (c >= '0' && c <= '9') return (byte)(0x30 + (c - '0')); }
         if (t.Length >= 2 && t[0] == 'f') { int n; if (int.TryParse(t.Substring(1), out n) && n >= 1 && n <= 24) return (byte)(0x70 + (n - 1)); }
         return 0;

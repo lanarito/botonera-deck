@@ -158,7 +158,17 @@ Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe 
 | ABS | F23 | ABS |
 | PEDIR PIT | F24 | Request pit / abrir pit menu |
 
-Pit pad (página PITS): **↑↓←→ mandan flechas reales**, OK=Enter, SALIR=Esc. Si tu pit menu usa otras teclas, se cambian en `botones.json` (campo `val`).
+Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), OK=Enter, SALIR=Esc. Si tu pit menu usa otras teclas, se cambian en `botones.json` (campo `val`). En CARRERA hay un botón **PITS** que salta a esa página (navegación, no manda tecla).
+
+**Cámara/FOV en CARRERA (bindear en AC o CSP → mandan teclas de numpad):**
+| Botón | Tecla | Bindear a |
+|---|---|---|
+| FOV + | Numpad + | acercar / FOV menor |
+| FOV − | Numpad − | alejar / FOV mayor |
+| CÁM ↑ | Numpad 8 | subir cámara |
+| CÁM ↓ | Numpad 2 | bajar cámara |
+
+**Mejora de rendimiento:** las 3 páginas se **pre-arman una sola vez**; cambiar de pestaña ahora es **instantáneo** (antes reconstruía todo y había lag). El D-pad de PITS se arma con el flag `"dpad": true` en los 4 botones de flecha.
 
 ### ✅ DEPLOY en la PC del simulador (checklist):
 1. `git pull` del repo en la PC del simu.

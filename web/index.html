@@ -9,6 +9,7 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
   html, body { margin: 0; height: 100%; overflow: hidden; font-family: Roboto, Arial, sans-serif; }
   body {
+    --size: 116px;
     background:
       repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, rgba(0,0,0,0) 1px 3px),
       repeating-linear-gradient(90deg, rgba(0,0,0,.10) 0 2px, rgba(0,0,0,0) 2px 7px),
@@ -16,20 +17,24 @@
   }
   .screw { position: absolute; width: 22px; height: 22px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #8a8f97 0%, #4b4f56 45%, #22252a 100%);
-    box-shadow: 0 1px 2px rgba(0,0,0,.9), inset 0 -1px 2px rgba(0,0,0,.6), 0 0 0 3px rgba(0,0,0,.35); z-index:2; }
+    box-shadow: 0 1px 2px rgba(0,0,0,.9), inset 0 -1px 2px rgba(0,0,0,.6), 0 0 0 3px rgba(0,0,0,.35); z-index: 2; }
   .screw::after { content: ""; position: absolute; left: 4px; right: 4px; top: 10px; height: 2px; background: #1a1c20;
     box-shadow: 0 1px 0 rgba(255,255,255,.18); transform: rotate(35deg); }
 
-  #grid {
-    --size: 116px;   /* medida fija del boton (cuadrado) — cambiar aca y todos respetan */
-    position: absolute; top: 58px; left: 0; right: 0; bottom: 0; padding: 18px 22px 22px; overflow-y: auto;
-    display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: 20px;
-    justify-content: center; align-content: start;
-  }
   #tabs { position: absolute; top: 0; left: 0; right: 0; height: 58px; display: flex; gap: 10px; align-items: center; justify-content: center; z-index: 3; }
   .tab { padding: 7px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d;
     background: linear-gradient(180deg, #23262c, #15171b); border: 1px solid #2c313a; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
   .tab.active { color: #fff; border-color: #5865F2; box-shadow: 0 0 16px -2px #5865F2, inset 0 0 12px -5px #5865F2; text-shadow: 0 0 8px #5865F2; }
+
+  #pages { position: absolute; top: 58px; left: 0; right: 0; bottom: 0; overflow-y: auto; }
+  .page { display: none; padding: 16px 22px 24px; }
+  .page.active { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: 20px; justify-content: center; align-content: start; }
+  .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: 14px; justify-content: center; margin: 26px auto 0; }
+  .dpad .up { grid-column: 2; grid-row: 1; }
+  .dpad .left { grid-column: 1; grid-row: 2; }
+  .dpad .right { grid-column: 3; grid-row: 2; }
+  .dpad .down { grid-column: 2; grid-row: 3; }
 
   .key { --c: #5865F2; --leak: .6; width: var(--size); height: var(--size); position: relative; touch-action: manipulation; }
   .well { position: absolute; top:0;left:0;right:0;bottom:0; border-radius: 26px;
@@ -54,7 +59,7 @@
     filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 9px var(--c)); transition: filter .08s; }
   .face img.ico { position: relative; width: 54%; height: 54%; object-fit: contain; filter: drop-shadow(0 0 7px var(--c)); }
   .lbl { position: relative; margin-top: 7px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
-    color: #9aa1aa; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9); text-align:center; }
+    color: #9aa1aa; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9); text-align: center; }
   .lamp { position: absolute; top: 12px; left: 50%; width: 30px; height: 6px; margin-left: -15px; border-radius: 3px;
     background: #1b1d21; box-shadow: inset 0 1px 2px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06); }
 
@@ -65,7 +70,6 @@
   .key.pressed svg { filter: drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 16px var(--c)) brightness(1.35); }
   .key.pressed img.ico { filter: drop-shadow(0 0 12px var(--c)) brightness(1.1); }
 
-  /* activado: el icono y la luz del boton quedan mas prendidos */
   .key.on { --leak: .92; }
   .key.on .lamp { background: var(--c); box-shadow: 0 0 6px var(--c), 0 0 16px var(--c), inset 0 1px 1px rgba(255,255,255,.55); }
   .key.on .halo { opacity: .5; }
@@ -78,7 +82,7 @@
   .key.empty .halo { opacity: 0; }
   .key.empty .lbl { color: #464b53; }
 
-  #dot { position: absolute; right: 14px; bottom: 10px; width: 9px; height: 9px; border-radius: 50%; background: #c33; box-shadow: 0 0 8px #c33; z-index:2; }
+  #dot { position: absolute; right: 14px; bottom: 10px; width: 9px; height: 9px; border-radius: 50%; background: #c33; box-shadow: 0 0 8px #c33; z-index: 2; }
   #dot.ok { background: #2c4; box-shadow: 0 0 8px #2c4; }
 </style>
 </head>
@@ -87,17 +91,18 @@
 <div class="screw" style="left:10px;bottom:10px"></div><div class="screw" style="right:10px;bottom:10px"></div>
 
 <div id="tabs"></div>
-<div id="grid"></div>
+<div id="pages"></div>
 <div id="dot"></div>
 <script>
-  // ES5 + XMLHttpRequest (compatible con el navegador viejo de la tablet)
-  var grid = document.getElementById('grid');
+  // ES5 + XMLHttpRequest. Paginas PRE-ARMADAS una sola vez -> cambio instantaneo.
   var dot = document.getElementById('dot');
-  var keys = [];
+  var pagesEl = document.getElementById('pages');
+  var tabsEl = document.getElementById('tabs');
+  var pages = [];
+  var allKeys = [];
 
   function xhrGet(url, cb) {
-    var x = new XMLHttpRequest();
-    x.open('GET', url, true);
+    var x = new XMLHttpRequest(); x.open('GET', url, true);
     x.onreadystatechange = function () { if (x.readyState === 4) { cb((x.status >= 200 && x.status < 300) ? null : 1, x.responseText); } };
     try { x.send(); } catch (e) { cb(1, ''); }
   }
@@ -107,42 +112,68 @@
     return '<img class="ico" src="' + icon + '" alt="">';
   }
 
-  function buildGrid(buttons) {
-    var i, b, k, e;
-    for (i = 0; i < buttons.length; i++) {
-      b = buttons[i];
-      k = document.createElement('div');
-      k.className = 'key';
-      k.setAttribute('data-id', b.id || '');
+  function makeKey(b, empty) {
+    var k = document.createElement('div');
+    k.className = empty ? 'key empty' : 'key';
+    var label = empty ? 'LIBRE' : (b.label || '');
+    if (!empty) {
+      if (b.id) k.setAttribute('data-id', b.id);
       k.setAttribute('data-off', b.label || '');
       if (b.labelOn) k.setAttribute('data-on', b.labelOn);
       if (b.toggle) k.setAttribute('data-lamp', '1');
-      k.innerHTML = iconHtml(b.icon);
-      grid.appendChild(k);
+      if (b.type === 'page') k.setAttribute('data-page', b.val || '');
     }
-    for (i = grid.children.length; i < 15; i++) {
-      e = document.createElement('div'); e.className = 'key empty'; e.setAttribute('data-off', 'LIBRE');
-      e.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>';
-      grid.appendChild(e);
+    var icon = empty ? '<svg class="ico" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>' : iconHtml(b.icon);
+    var lbl = label ? ('<div class="lbl">' + label + '</div>') : '';
+    k.innerHTML = '<div class="well"></div><div class="cap"><div class="face">' +
+      ((!empty && b.toggle) ? '<div class="lamp"></div>' : '') +
+      '<div class="halo"></div>' + icon + lbl + '</div></div>';
+    k.addEventListener('touchstart', down, { passive: false });
+    k.addEventListener('touchend', up); k.addEventListener('touchcancel', up);
+    k.addEventListener('mousedown', down); k.addEventListener('mouseup', up); k.addEventListener('mouseleave', up);
+    if (!empty && b.id) allKeys.push(k);
+    return k;
+  }
+
+  function makePage(page) {
+    var pageEl = document.createElement('div'); pageEl.className = 'page';
+    var grid = document.createElement('div'); grid.className = 'grid';
+    var dpadBtns = [], normal = [], i, b;
+    var btns = page.buttons || [];
+    for (i = 0; i < btns.length; i++) { b = btns[i]; if (b.dpad) dpadBtns.push(b); else normal.push(b); }
+    for (i = 0; i < normal.length; i++) grid.appendChild(makeKey(normal[i], false));
+    if (dpadBtns.length === 0) { var pad = Math.ceil(normal.length / 5) * 5; for (i = normal.length; i < pad; i++) grid.appendChild(makeKey(null, true)); }
+    pageEl.appendChild(grid);
+    if (dpadBtns.length) {
+      var dp = document.createElement('div'); dp.className = 'dpad';
+      for (i = 0; i < dpadBtns.length; i++) { var kk = makeKey(dpadBtns[i], false); kk.className += ' ' + (dpadBtns[i].val || ''); dp.appendChild(kk); }
+      pageEl.appendChild(dp);
     }
-    keys = document.querySelectorAll('.key');
-    for (i = 0; i < keys.length; i++) {
-      k = keys[i];
-      var icon = k.innerHTML;
-      k.innerHTML = '<div class="well"></div><div class="cap"><div class="face">' +
-        (k.getAttribute('data-lamp') ? '<div class="lamp"></div>' : '') +
-        '<div class="halo"></div>' + icon +
-        '<div class="lbl">' + (k.getAttribute('data-off') || '') + '</div></div></div>';
-      k.addEventListener('touchstart', down, { passive: false });
-      k.addEventListener('touchend', up); k.addEventListener('touchcancel', up);
-      k.addEventListener('mousedown', down); k.addEventListener('mouseup', up); k.addEventListener('mouseleave', up);
+    return pageEl;
+  }
+
+  function showPage(idx) {
+    var ps = pagesEl.children; for (var i = 0; i < ps.length; i++) ps[i].className = (i === idx ? 'page active' : 'page');
+    var ts = tabsEl.children; for (i = 0; i < ts.length; i++) ts[i].className = (i === idx ? 'tab active' : 'tab');
+  }
+  function goToPageByName(name) { for (var i = 0; i < pages.length; i++) { if ((pages[i].name || '') === name) { showPage(i); return; } } }
+
+  function buildTabs() {
+    tabsEl.innerHTML = '';
+    for (var i = 0; i < pages.length; i++) {
+      (function (idx) {
+        var t = document.createElement('div'); t.className = 'tab'; t.textContent = pages[idx].name || ('P' + (idx + 1));
+        t.addEventListener('touchstart', function (ev) { ev.preventDefault(); showPage(idx); }, { passive: false });
+        t.addEventListener('click', function () { showPage(idx); });
+        tabsEl.appendChild(t);
+      })(i);
     }
   }
 
   function apply(s) {
     dot.className = 'ok';
-    for (var i = 0; i < keys.length; i++) {
-      var k = keys[i], id = k.getAttribute('data-id');
+    for (var i = 0; i < allKeys.length; i++) {
+      var k = allKeys[i], id = k.getAttribute('data-id');
       if (id && s.hasOwnProperty(id)) {
         k.classList.toggle('on', !!s[id]);
         var lbl = k.querySelector('.lbl'); if (lbl) lbl.textContent = s[id] ? k.getAttribute('data-on') : k.getAttribute('data-off');
@@ -156,6 +187,8 @@
     if (k.className.indexOf('empty') >= 0) return;
     k.classList.add('pressed');
     if (navigator.vibrate) navigator.vibrate(15);
+    var page = k.getAttribute('data-page');
+    if (page) { goToPageByName(page); return; }
     if (k.getAttribute('data-lamp')) {
       var on = k.classList.toggle('on');
       var lbl = k.querySelector('.lbl'); if (lbl) lbl.textContent = on ? k.getAttribute('data-on') : k.getAttribute('data-off');
@@ -164,34 +197,17 @@
   }
   function up(ev) { ev.currentTarget.classList.remove('pressed'); }
 
-  // pantalla completa al primer toque (saca la barra del navegador)
+  // pantalla completa al primer toque
   function goFS() { var el = document.documentElement; var r = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen; if (r) { try { r.call(el); } catch (e) {} } }
   document.addEventListener('touchend', goFS, { once: true });
   document.addEventListener('click', goFS, { once: true });
 
-  // paginas + pestanas
-  var pages = [];
-  function showPage(idx) {
-    var tabs = document.querySelectorAll('.tab');
-    for (var i = 0; i < tabs.length; i++) tabs[i].className = (i === idx ? 'tab active' : 'tab');
-    grid.innerHTML = '';
-    buildGrid(pages[idx] && pages[idx].buttons ? pages[idx].buttons : []);
-  }
-  function buildTabs() {
-    var tb = document.getElementById('tabs'); tb.innerHTML = '';
-    for (var i = 0; i < pages.length; i++) {
-      (function (idx) {
-        var t = document.createElement('div'); t.className = 'tab'; t.textContent = pages[idx].name || ('P' + (idx + 1));
-        t.addEventListener('click', function () { showPage(idx); });
-        t.addEventListener('touchstart', function (ev) { ev.preventDefault(); showPage(idx); }, { passive: false });
-        tb.appendChild(t);
-      })(i);
-    }
-  }
-  // arrancar: traer las paginas desde /config
+  // arrancar: traer las paginas desde /config y armarlas TODAS una sola vez
   xhrGet('/config', function (err, txt) {
     var cfg; try { cfg = JSON.parse(txt); } catch (e) { cfg = null; }
     pages = (cfg && cfg.pages) ? cfg.pages : [];
+    pagesEl.innerHTML = '';
+    for (var i = 0; i < pages.length; i++) pagesEl.appendChild(makePage(pages[i]));
     buildTabs();
     showPage(0);
     req('/state');
