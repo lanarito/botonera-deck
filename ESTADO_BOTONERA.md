@@ -143,20 +143,21 @@ Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe 
 **Botonera.cs:** ahora soporta **flechas / enter / esc** (con flag EXTENDED) y config por **páginas**. `index.html` dibuja pestañas + página activa desde `/config` (ES5/XHR). Visual intacto (neón azul). **Probado:** `/config` devuelve INICIO(15)/CARRERA(11)/PITS(7) y compila OK. *(La tablet se desconectó por USB antes de la captura en vivo; al reconectar se auto-reabre.)*
 
 ### 🎮 Bindear en Assetto Corsa (Opciones → Controles → asignar estas teclas):
-| Botón (CARRERA) | Tecla | Función de AC a asignar |
+> **Actualizado:** se sacaron de CARRERA los controles que el usuario ya usa en el **volante**
+> (LUCES, RÁFAGA, BALIZAS, LIMPIA, LIMITADOR, TC, ABS). Y **PITS dejó de ser pestaña**: se entra con
+> el botón 🏁 **PITS** desde CARRERA (la página PITS está `"hidden": true`). Íconos: emoji a color (twemoji).
+
+| Botón | Tecla | Función de AC a asignar |
 |---|---|---|
-| LUCES | F13 | Headlights |
-| RÁFAGA | F14 | Flash lights |
-| BALIZAS | F15 | Hazards (si existe / CSP) |
-| LIMPIA | F16 | Wiper (CSP) |
-| LIMITADOR | F17 | Pit limiter |
 | CÁMARA | F18 | Change camera |
 | MIRAR ← | F19 | Look left |
 | MIRAR → | F20 | Look right |
 | OCULTAR | F21 | Hide apps / HUD |
-| TC | F22 | Traction control |
-| ABS | F23 | ABS |
+| FOV + / FOV − | Numpad + / − | FOV acercar/alejar (CSP) |
+| CÁM ↑ / CÁM ↓ | Numpad 8 / 2 | Mover cámara (CSP) |
 | PEDIR PIT | F24 | Request pit / abrir pit menu |
+| PITS (🏁) | — | navega a la página PITS (no manda tecla) |
+| Pad PITS ↑↓←→ / OK / SALIR | flechas / Enter / Esc | navegar el pit menu (teclas reales) |
 
 Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), OK=Enter, SALIR=Esc. Si tu pit menu usa otras teclas, se cambian en `botones.json` (campo `val`). En CARRERA hay un botón **PITS** que salta a esa página (navegación, no manda tecla).
 
