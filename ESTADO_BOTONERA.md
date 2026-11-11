@@ -180,3 +180,21 @@ Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), 
 6. Enchufar la tablet + correr `Botonera.exe` → se conecta y abre sola.
 
 **Pendiente futuro:** página DATOS (telemetría), volumen por-app (Core Audio), ícono real de SetupHub, Twitch (su favicon falló). Nada bloqueante.
+
+---
+
+## 11. [CLAUDE PC del simu — 2026-11-11] DEPLOY hecho en el simulador ✅
+- `git pull` hecho. **Rutas reales** en `botones.json`: Content Manager = `%USERPROFILE%\Desktop\Content Manager.exe`,
+  SetupHub Pro = `C:\Program Files\SetupHubPro\app.exe`, Antigravity = `%LOCALAPPDATA%\Programs\Antigravity IDE\Antigravity IDE.exe`. Discord y SimHub ya estaban bien.
+- **Ícono real de SetupHub** extraído de `app.exe` (256 px) → `web/icons/setuphub.png`.
+- **AC controls.ini** (backup en `tablet/controls.ini.bak_antes_botonera_*`). Solo se agregó la TECLA, sin tocar los botones del volante:
+  | Botón | Tecla | Acción AC/CSP |
+  |---|---|---|
+  | CÁMARA | F18 | `ACTION_CHANGE_CAMERA` |
+  | MIRAR ← / → | **Q / E** | `GLANCELEFT` / `GLANCERIGHT` (ya eran Q/E en AC → se cambió `botones.json` de F19/F20 a q/e, sin tocar AC) |
+  | FOV + / − | Num+ / Num− | `__EXT_SEAT_FOV_INCREASE` / `__EXT_SEAT_FOV_DECREASE` (CSP) |
+  | CÁM ↑ / ↓ | Num8 / Num2 | `__EXT_SEAT_UP` / `__EXT_SEAT_DOWN` (CSP; siguen también en el joystick izq. botones 4/6) |
+  | PITS | F24 | `__EXT_QMP_SHOW` = CSP "Show or hide Quick Pits menu" |
+- **Autoarranque instalado** (`shell:startup\Botonera.lnk`). Corriendo.
+- **Fix:** al reabrir sola, Jelly a veces quedaba en BLANCO (reusaba pestaña vieja) → `OpenPage` ahora hace `am force-stop org.lineageos.jelly` antes del `am start`. Probado: abre bien sola.
+- **Falta (usuario):** atajos en Discord (`Ctrl+Shift+Alt+F9` mute, `Ctrl+Shift+Alt+F10` deafen). Probar en pista: cámara, mirar, FOV, cámara ↑↓, PITS (Quick Pits menu de CSP) + flechas/Enter/Esc.

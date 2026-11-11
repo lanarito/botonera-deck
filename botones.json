@@ -5,9 +5,9 @@
       "buttons": [
         { "id": "discord",     "label": "DISCORD",     "icon": "icons/discord.png",     "type": "launch", "val": "%LOCALAPPDATA%\\Discord\\Update.exe", "args": "--processStart Discord.exe" },
         { "id": "simhub",      "label": "SIMHUB",      "icon": "icons/simhub.png",      "type": "launch", "val": "C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe" },
-        { "id": "ac",          "label": "ASSETTO",     "icon": "icons/assetto.png",     "type": "launch", "val": "%LOCALAPPDATA%\\AcTools Content Manager\\Content Manager.exe" },
-        { "id": "setuphub",    "label": "SETUPHUB",    "icon": "icons/em_knobs.png",    "type": "launch", "val": "" },
-        { "id": "antigravity", "label": "ANTIGRAVITY", "icon": "icons/antigravity.png", "type": "launch", "val": "%LOCALAPPDATA%\\Programs\\Antigravity\\Antigravity.exe" },
+        { "id": "ac",          "label": "ASSETTO",     "icon": "icons/assetto.png",     "type": "launch", "val": "%USERPROFILE%\\Desktop\\Content Manager.exe" },
+        { "id": "setuphub",    "label": "SETUPHUB",    "icon": "icons/setuphub.png",    "type": "launch", "val": "C:\\Program Files\\SetupHubPro\\app.exe" },
+        { "id": "antigravity", "label": "ANTIGRAVITY", "icon": "icons/antigravity.png", "type": "launch", "val": "%LOCALAPPDATA%\\Programs\\Antigravity IDE\\Antigravity IDE.exe" },
         { "id": "youtube",     "label": "YOUTUBE",     "icon": "icons/youtube.png",     "type": "url",    "val": "https://www.youtube.com" },
         { "id": "google",      "label": "GOOGLE",      "icon": "icons/google.png",      "type": "url",    "val": "https://www.google.com" },
         { "id": "spotify",     "label": "SPOTIFY",     "icon": "icons/spotify.png",     "type": "url",    "val": "https://open.spotify.com" },
@@ -24,8 +24,8 @@
       "name": "CARRERA",
       "buttons": [
         { "id": "ac_camara",    "label": "CÁMARA",   "icon": "icons/em_camera.png",   "type": "key",  "val": "f18" },
-        { "id": "ac_mirar_izq", "label": "MIRAR ←", "icon": "icons/em_lookleft.png", "type": "key",  "val": "f19" },
-        { "id": "ac_mirar_der", "label": "MIRAR →", "icon": "icons/em_lookright.png","type": "key",  "val": "f20" },
+        { "id": "ac_mirar_izq", "label": "MIRAR ←", "icon": "icons/em_lookleft.png", "type": "key",  "val": "q" },
+        { "id": "ac_mirar_der", "label": "MIRAR →", "icon": "icons/em_lookright.png","type": "key",  "val": "e" },
         { "id": "ac_fov_mas",   "label": "FOV +",    "icon": "icons/em_fovplus.png",  "type": "key",  "val": "num+" },
         { "id": "ac_fov_menos", "label": "FOV −",    "icon": "icons/em_fovminus.png", "type": "key",  "val": "num-" },
         { "id": "ac_cam_sube",  "label": "CÁM ↑",   "icon": "icons/em_camup.png",    "type": "key",  "val": "num8" },

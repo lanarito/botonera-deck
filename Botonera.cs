@@ -220,7 +220,8 @@ class Botonera
     }
 
     // ===== adb: rearma el reverse solo + se recupera del replug =====
-    static readonly string OpenPage = "shell am start -a android.intent.action.VIEW -d \"http://localhost:" + Port + "/index.html\" -n org.lineageos.jelly/.MainActivity";
+    // force-stop antes: si Jelly reusa una pestaña vieja la pagina queda en blanco (visto en la PC del simu 2026-11-11)
+    static readonly string OpenPage = "shell \"am force-stop org.lineageos.jelly; sleep 1; am start -a android.intent.action.VIEW -d http://localhost:" + Port + "/index.html -n org.lineageos.jelly/.MainActivity\"";
     static void AdbLoop()
     {
         bool lastOk = false;
