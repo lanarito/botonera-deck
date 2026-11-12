@@ -230,3 +230,16 @@ Pit pad (página PITS): **↑↓←→ mandan flechas reales** (en cruz/D-pad), 
 | PANTALLA | SETUP AUTO | F17 | `__CM_SETUP_CAR` |
 - Las teclas NUEVAS (F13–F17, F19) se activan al **reiniciar AC** (estaba abierto al asignarlas).
 - Ojo preexistente: en AC `HIDE_DAMAGE` también usa **Q** (igual que MIRAR ←).
+
+## 14. [CLAUDE PC del simu — 2026-11-11] Lento + doble toque + teclas a AC — ARREGLADO (falta prueba con AC)
+Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento", y los botones "se activan y desactivan".
+- **Doble toque (causa de "se activa y desactiva"):** el log mostró cada toque llegando 2 veces (Discord abierto 2× en el mismo
+  segundo). La tablet además del toque simula un clic de mouse → toggles de AC (nombres, apps, espejo) se prendían y apagaban.
+  Fix: la página ignora el mouse 1 s después de un toque + `preventDefault` en touchend; el server ignora el mismo id < 300 ms (lo loguea).
+- **Lentitud:** medido el cable (adb reverse): **mediana 30 ms** → no era el cable. Era el DIBUJO: resplandores con blur, `filter: drop-shadow`
+  en íconos y cambios de `box-shadow`/`bottom` al apretar → la GPU de 2012 redibujaba todo. Fix: resplandores en capas propias
+  (`will-change`), al apretar solo `transform` + `opacity` (sin repintar). Se sacaron los `drop-shadow` de los íconos (los reemplaza el halo).
+  Backup del HTML anterior: `tablet/index.html.bak_antes_rapido`.
+- **Teclas a AC:** ahora por **scancode** con `SendInput` (KEYEVENTF_SCANCODE), 60 ms apretadas (AC/CSP leen DirectInput/raw input).
+  Cada tecla se loguea con la **ventana que estaba al frente** (`tecla f18 -> ventana al frente: acs`) → si no anda, mirar eso.
+  Log ahora con milisegundos y cada toque (`toque: <id>`).

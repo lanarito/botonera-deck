@@ -48,44 +48,43 @@
   .well { position: absolute; top:0;left:0;right:0;bottom:0; border-radius: 26px;
     background: radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0) 0%, #040506 75%), #040506;
     box-shadow: inset 0 8px 14px rgba(0,0,0,.95), inset 0 -1px 0 rgba(255,255,255,.07), 0 1px 0 rgba(255,255,255,.09), 0 -1px 0 rgba(0,0,0,.6); }
+  /* RAPIDO (tablet vieja): todo lo pesado (resplandores con desenfoque) se dibuja UNA vez en capas propias.
+     Al apretar solo cambian transform y opacity, que mueve la placa de video sin redibujar. */
   .well::after { content: ""; position: absolute; top:6px;left:6px;right:6px;bottom:2px; border-radius: 22px;
-    box-shadow: 0 0 28px 5px var(--c), 0 0 10px 1px var(--c), inset 0 0 20px 4px var(--c); opacity: var(--leak); transition: opacity .08s; }
+    box-shadow: 0 0 28px 5px var(--c), 0 0 10px 1px var(--c), inset 0 0 20px 4px var(--c); opacity: .6;
+    will-change: opacity; transform: translateZ(0); }
+  .well::before { content: ""; position: absolute; top:6px;left:6px;right:6px;bottom:2px; border-radius: 22px; z-index: 0;
+    box-shadow: 0 0 34px 8px var(--c), inset 0 0 26px 6px var(--c); opacity: 0;
+    will-change: opacity; transform: translateZ(0); }
   .cap { position: absolute; top:7px;left:7px;right:7px;bottom:7px; border-radius: 21px;
     background: linear-gradient(180deg, #3a3e45 0%, #24272c 55%, #15171a 100%);
     box-shadow: 0 10px 14px rgba(0,0,0,.75), 0 2px 3px rgba(0,0,0,.8), 0 0 18px -3px var(--c);
-    transform: translateY(0); transition: transform .06s ease-out, box-shadow .06s; }
+    will-change: transform; transform: translate3d(0,0,0); }
   .face { position: absolute; top:2px;left:4px;right:4px;bottom:13px; border-radius: 17px;
     background:
       radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.13) 0%, rgba(255,255,255,0) 55%),
       radial-gradient(ellipse at 50% 60%, #22252b 0%, #2a2e35 70%, #33373f 100%);
     box-shadow: inset 0 2px 1px rgba(255,255,255,.16), inset 0 -3px 5px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.35);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
-    transition: bottom .06s ease-out; }
-  .halo { position: absolute; width: 62%; height: 62%; top: 12%; border-radius: 50%;
-    background: radial-gradient(circle, var(--c) 0%, rgba(0,0,0,0) 65%); opacity: .16; transition: opacity .08s; }
-  .face svg { position: relative; width: 46%; height: 46%; fill: var(--c);
-    filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 9px var(--c)); transition: filter .08s; }
-  .face img.ico { position: relative; width: 54%; height: 54%; object-fit: contain; filter: drop-shadow(0 0 7px var(--c)); }
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  .halo { position: absolute; width: 70%; height: 70%; top: 8%; border-radius: 50%;
+    background: radial-gradient(circle, var(--c) 0%, rgba(0,0,0,0) 65%); opacity: .22;
+    will-change: opacity; transform: translateZ(0); }
+  .face svg { position: relative; width: 46%; height: 46%; fill: var(--c); }
+  .face img.ico { position: relative; width: 54%; height: 54%; object-fit: contain; }
   .lbl { position: relative; margin-top: 7px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
     color: #9aa1aa; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9); text-align: center; }
   .lamp { position: absolute; top: 12px; left: 50%; width: 30px; height: 6px; margin-left: -15px; border-radius: 3px;
     background: #1b1d21; box-shadow: inset 0 1px 2px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06); }
 
-  .key.pressed { --leak: .95; }
-  .key.pressed .cap { transform: translateY(8px); box-shadow: 0 2px 4px rgba(0,0,0,.85); }
-  .key.pressed .face { bottom: 5px; }
-  .key.pressed .halo { opacity: .38; }
-  .key.pressed svg { filter: drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 16px var(--c)) brightness(1.35); }
-  .key.pressed img.ico { filter: drop-shadow(0 0 12px var(--c)) brightness(1.1); }
+  .key.pressed .cap { transform: translate3d(0,7px,0); }
+  .key.pressed .well::before { opacity: .9; }
+  .key.pressed .halo { opacity: .5; }
 
-  .key.on { --leak: .92; }
+  .key.on .well::before { opacity: .7; }
   .key.on .lamp { background: var(--c); box-shadow: 0 0 6px var(--c), 0 0 16px var(--c), inset 0 1px 1px rgba(255,255,255,.55); }
-  .key.on .halo { opacity: .5; }
-  .key.on svg { filter: drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 18px var(--c)) brightness(1.4); }
-  .key.on .lbl { color: #eef2f8; text-shadow: 0 0 10px var(--c); }
-  .key.on img.ico { filter: brightness(1.3) drop-shadow(0 0 11px var(--c)); }
-
-  .key.empty { --leak: 0; }
+  .key.on .halo { opacity: .55; }
+  .key.on .lbl { color: #eef2f8; }
+  .key.empty .well::after, .key.empty .well::before { display: none; }
   .key.empty .cap { box-shadow: 0 8px 12px rgba(0,0,0,.7), 0 2px 3px rgba(0,0,0,.8); }
   .key.empty svg { fill: #33373e; filter: none; }
   .key.empty .halo { opacity: 0; }
@@ -136,7 +135,7 @@
       ((!empty && b.toggle) ? '<div class="lamp"></div>' : '') +
       '<div class="halo"></div>' + icon + lbl + '</div></div>';
     k.addEventListener('touchstart', down, { passive: false });
-    k.addEventListener('touchend', up); k.addEventListener('touchcancel', up);
+    k.addEventListener('touchend', up, { passive: false }); k.addEventListener('touchcancel', up);
     k.addEventListener('mousedown', down); k.addEventListener('mouseup', up); k.addEventListener('mouseleave', up);
     if (!empty && b.id) allKeys.push(k);
     return k;
@@ -218,8 +217,11 @@
   }, { passive: true });
 
   // con el dedo: el boton se hunde al tocar y la accion sale al LEVANTAR (si no fue un deslizamiento)
+  var lastTouch = 0;   // la tablet ademas del toque simula un clic de mouse -> se mandaba 2 veces (prendia y apagaba)
   function down(ev) {
     var k = ev.currentTarget; ev.preventDefault();
+    if (ev.type === 'touchstart') lastTouch = Date.now();
+    else if (Date.now() - lastTouch < 1000) return;
     if (k.className.indexOf('empty') >= 0) return;
     k.classList.add('pressed');
     if (ev.type === 'touchstart') { k._t = true; return; }
@@ -238,6 +240,7 @@
   }
   function up(ev) {
     var k = ev.currentTarget; k.classList.remove('pressed');
+    if (ev.type === 'touchend') { ev.preventDefault(); lastTouch = Date.now(); }
     if (ev.type === 'touchend' && k._t && !moved) fire(k);
     k._t = false;
   }

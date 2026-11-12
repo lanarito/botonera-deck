@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Botonera</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: Roboto, Arial, sans-serif; }
+  body {
+    --size: 116px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, rgba(0,0,0,0) 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.10) 0 2px, rgba(0,0,0,0) 2px 7px),
+      linear-gradient(165deg, #23262b 0%, #16181c 45%, #0e1012 100%);
+  }
+  .screw { position: absolute; width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #8a8f97 0%, #4b4f56 45%, #22252a 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.9), inset 0 -1px 2px rgba(0,0,0,.6), 0 0 0 3px rgba(0,0,0,.35); z-index: 2; }
+  .screw::after { content: ""; position: absolute; left: 4px; right: 4px; top: 10px; height: 2px; background: #1a1c20;
+    box-shadow: 0 1px 0 rgba(255,255,255,.18); transform: rotate(35deg); }
+
+  #tabs { position: absolute; top: 0; left: 0; right: 0; height: 58px; display: flex; gap: 10px; align-items: center; justify-content: center; z-index: 3; }
+  .tab { padding: 7px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d;
+    background: linear-gradient(180deg, #23262c, #15171b); border: 1px solid #2c313a; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+  .tab.active { color: #fff; border-color: #5865F2; box-shadow: 0 0 16px -2px #5865F2, inset 0 0 12px -5px #5865F2; text-shadow: 0 0 8px #5865F2; }
+
+  #pages { position: absolute; top: 58px; left: 0; right: 0; bottom: 0; overflow-y: auto; }
+  .page { display: none; padding: 16px 22px 24px; }
+  .page.active { display: block; }
+  /* deslizar entre paginas: entrada corta desde el lado del gesto */
+  html, body { touch-action: none; }
+  .page.active.inL { animation: inL .16s ease-out; } .page.active.inR { animation: inR .16s ease-out; }
+  .page.active.inU { animation: inU .16s ease-out; } .page.active.inD { animation: inD .16s ease-out; }
+  @keyframes inL { from { transform: translateX(60px);  opacity: .2; } to { transform: none; opacity: 1; } }
+  @keyframes inR { from { transform: translateX(-60px); opacity: .2; } to { transform: none; opacity: 1; } }
+  @keyframes inU { from { transform: translateY(50px);  opacity: .2; } to { transform: none; opacity: 1; } }
+  @keyframes inD { from { transform: translateY(-50px); opacity: .2; } to { transform: none; opacity: 1; } }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: 20px; justify-content: center; align-content: start; }
+  .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: 14px; justify-content: center; margin: 26px auto 0; }
+  .dpad .up { grid-column: 2; grid-row: 1; }
+  .dpad .left { grid-column: 1; grid-row: 2; }
+  .dpad .right { grid-column: 3; grid-row: 2; }
+  .dpad .down { grid-column: 2; grid-row: 3; }
+
+  .key { --c: #5865F2; --leak: .6; width: var(--size); height: var(--size); position: relative; touch-action: manipulation; }
+  .well { position: absolute; top:0;left:0;right:0;bottom:0; border-radius: 26px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0) 0%, #040506 75%), #040506;
+    box-shadow: inset 0 8px 14px rgba(0,0,0,.95), inset 0 -1px 0 rgba(255,255,255,.07), 0 1px 0 rgba(255,255,255,.09), 0 -1px 0 rgba(0,0,0,.6); }
+  .well::after { content: ""; position: absolute; top:6px;left:6px;right:6px;bottom:2px; border-radius: 22px;
+    box-shadow: 0 0 28px 5px var(--c), 0 0 10px 1px var(--c), inset 0 0 20px 4px var(--c); opacity: var(--leak); transition: opacity .08s; }
+  .cap { position: absolute; top:7px;left:7px;right:7px;bottom:7px; border-radius: 21px;
+    background: linear-gradient(180deg, #3a3e45 0%, #24272c 55%, #15171a 100%);
+    box-shadow: 0 10px 14px rgba(0,0,0,.75), 0 2px 3px rgba(0,0,0,.8), 0 0 18px -3px var(--c);
+    transform: translateY(0); transition: transform .06s ease-out, box-shadow .06s; }
+  .face { position: absolute; top:2px;left:4px;right:4px;bottom:13px; border-radius: 17px;
+    background:
+      radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.13) 0%, rgba(255,255,255,0) 55%),
+      radial-gradient(ellipse at 50% 60%, #22252b 0%, #2a2e35 70%, #33373f 100%);
+    box-shadow: inset 0 2px 1px rgba(255,255,255,.16), inset 0 -3px 5px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.35);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+    transition: bottom .06s ease-out; }
+  .halo { position: absolute; width: 62%; height: 62%; top: 12%; border-radius: 50%;
+    background: radial-gradient(circle, var(--c) 0%, rgba(0,0,0,0) 65%); opacity: .16; transition: opacity .08s; }
+  .face svg { position: relative; width: 46%; height: 46%; fill: var(--c);
+    filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 9px var(--c)); transition: filter .08s; }
+  .face img.ico { position: relative; width: 54%; height: 54%; object-fit: contain; filter: drop-shadow(0 0 7px var(--c)); }
+  .lbl { position: relative; margin-top: 7px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    color: #9aa1aa; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9); text-align: center; }
+  .lamp { position: absolute; top: 12px; left: 50%; width: 30px; height: 6px; margin-left: -15px; border-radius: 3px;
+    background: #1b1d21; box-shadow: inset 0 1px 2px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06); }
+
+  .key.pressed { --leak: .95; }
+  .key.pressed .cap { transform: translateY(8px); box-shadow: 0 2px 4px rgba(0,0,0,.85); }
+  .key.pressed .face { bottom: 5px; }
+  .key.pressed .halo { opacity: .38; }
+  .key.pressed svg { filter: drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 16px var(--c)) brightness(1.35); }
+  .key.pressed img.ico { filter: drop-shadow(0 0 12px var(--c)) brightness(1.1); }
+
+  .key.on { --leak: .92; }
+  .key.on .lamp { background: var(--c); box-shadow: 0 0 6px var(--c), 0 0 16px var(--c), inset 0 1px 1px rgba(255,255,255,.55); }
+  .key.on .halo { opacity: .5; }
+  .key.on svg { filter: drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 18px var(--c)) brightness(1.4); }
+  .key.on .lbl { color: #eef2f8; text-shadow: 0 0 10px var(--c); }
+  .key.on img.ico { filter: brightness(1.3) drop-shadow(0 0 11px var(--c)); }
+
+  .key.empty { --leak: 0; }
+  .key.empty .cap { box-shadow: 0 8px 12px rgba(0,0,0,.7), 0 2px 3px rgba(0,0,0,.8); }
+  .key.empty svg { fill: #33373e; filter: none; }
+  .key.empty .halo { opacity: 0; }
+  .key.empty .lbl { color: #464b53; }
+
+  #dot { position: absolute; right: 14px; bottom: 10px; width: 9px; height: 9px; border-radius: 50%; background: #c33; box-shadow: 0 0 8px #c33; z-index: 2; }
+  #dot.ok { background: #2c4; box-shadow: 0 0 8px #2c4; }
+</style>
+</head>
+<body>
+<div id="tabs"></div>
+<div id="pages"></div>
+<div id="dot"></div>
+<script>
+  // ES5 + XMLHttpRequest. Paginas PRE-ARMADAS una sola vez -> cambio instantaneo.
+  var dot = document.getElementById('dot');
+  var pagesEl = document.getElementById('pages');
+  var tabsEl = document.getElementById('tabs');
+  var pages = [];
+  var allKeys = [];
+
+  function xhrGet(url, cb) {
+    var x = new XMLHttpRequest(); x.open('GET', url, true);
+    x.onreadystatechange = function () { if (x.readyState === 4) { cb((x.status >= 200 && x.status < 300) ? null : 1, x.responseText); } };
+    try { x.send(); } catch (e) { cb(1, ''); }
+  }
+  function iconHtml(icon) {
+    if (!icon) return '';
+    if (icon.indexOf('svg:') === 0) return '<svg class="ico" viewBox="0 0 24 24"><path d="' + icon.substring(4) + '"/></svg>';
+    return '<img class="ico" src="' + icon + '" alt="">';
+  }
+
+  function makeKey(b, empty) {
+    var k = document.createElement('div');
+    k.className = empty ? 'key empty' : 'key';
+    var label = empty ? 'LIBRE' : (b.label || '');
+    if (!empty) {
+      if (b.id) k.setAttribute('data-id', b.id);
+      k.setAttribute('data-off', b.label || '');
+      if (b.labelOn) k.setAttribute('data-on', b.labelOn);
+      if (b.toggle) k.setAttribute('data-lamp', '1');
+      if (b.type === 'page') k.setAttribute('data-page', b.val || '');
+      if (b.goto) k.setAttribute('data-goto', b.goto);
+    }
+    var icon = empty ? '<svg class="ico" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>' : iconHtml(b.icon);
+    var lbl = label ? ('<div class="lbl">' + label + '</div>') : '';
+    k.innerHTML = '<div class="well"></div><div class="cap"><div class="face">' +
+      ((!empty && b.toggle) ? '<div class="lamp"></div>' : '') +
+      '<div class="halo"></div>' + icon + lbl + '</div></div>';
+    k.addEventListener('touchstart', down, { passive: false });
+    k.addEventListener('touchend', up); k.addEventListener('touchcancel', up);
+    k.addEventListener('mousedown', down); k.addEventListener('mouseup', up); k.addEventListener('mouseleave', up);
+    if (!empty && b.id) allKeys.push(k);
+    return k;
+  }
+
+  function makePage(page) {
+    var pageEl = document.createElement('div'); pageEl.className = 'page';
+    var grid = document.createElement('div'); grid.className = 'grid';
+    var dpadBtns = [], normal = [], i, b;
+    var btns = page.buttons || [];
+    for (i = 0; i < btns.length; i++) { b = btns[i]; if (b.dpad) dpadBtns.push(b); else normal.push(b); }
+    for (i = 0; i < normal.length; i++) grid.appendChild(makeKey(normal[i], false));
+    if (dpadBtns.length === 0) { var pad = Math.ceil(normal.length / 5) * 5; for (i = normal.length; i < pad; i++) grid.appendChild(makeKey(null, true)); }
+    pageEl.appendChild(grid);
+    if (dpadBtns.length) {
+      var dp = document.createElement('div'); dp.className = 'dpad';
+      for (i = 0; i < dpadBtns.length; i++) { var kk = makeKey(dpadBtns[i], false); kk.className += ' ' + (dpadBtns[i].val || ''); dp.appendChild(kk); }
+      pageEl.appendChild(dp);
+    }
+    return pageEl;
+  }
+
+  var cur = 0, lastVis = 0;
+  function showPage(idx, anim) {
+    cur = idx; if (pages[idx] && !pages[idx].hidden) lastVis = idx;
+    var ps = pagesEl.children; for (var i = 0; i < ps.length; i++) ps[i].className = (i === idx ? ('page active' + (anim ? ' ' + anim : '')) : 'page');
+    var ts = tabsEl.children; for (i = 0; i < ts.length; i++) ts[i].className = (parseInt(ts[i].getAttribute('data-pageidx'), 10) === idx ? 'tab active' : 'tab');
+  }
+  function goToPageByName(name) { for (var i = 0; i < pages.length; i++) { if ((pages[i].name || '') === name) { showPage(i); return; } } }
+
+  function buildTabs() {
+    tabsEl.innerHTML = '';
+    for (var i = 0; i < pages.length; i++) {
+      if (pages[i].hidden) continue;
+      (function (idx) {
+        var t = document.createElement('div'); t.className = 'tab'; t.setAttribute('data-pageidx', idx); t.textContent = pages[idx].name || ('P' + (idx + 1));
+        t.addEventListener('touchstart', function (ev) { ev.preventDefault(); showPage(idx); }, { passive: false });
+        t.addEventListener('click', function () { showPage(idx); });
+        tabsEl.appendChild(t);
+      })(i);
+    }
+  }
+
+  function apply(s) {
+    dot.className = 'ok';
+    for (var i = 0; i < allKeys.length; i++) {
+      var k = allKeys[i], id = k.getAttribute('data-id');
+      if (id && s.hasOwnProperty(id)) {
+        k.classList.toggle('on', !!s[id]);
+        var lbl = k.querySelector('.lbl'); if (lbl) lbl.textContent = s[id] ? k.getAttribute('data-on') : k.getAttribute('data-off');
+      }
+    }
+  }
+  function req(url) { xhrGet(url, function (err, txt) { if (err) { dot.className = ''; return; } var s; try { s = JSON.parse(txt); } catch (e) { return; } apply(s); }); }
+
+  // ---- deslizar: izq/arriba = pagina siguiente, der/abajo = anterior (entre las pestañas visibles) ----
+  var sx = 0, sy = 0, moved = false;
+  function visList() { var v = []; for (var i = 0; i < pages.length; i++) if (!pages[i].hidden) v.push(i); return v; }
+  function swipe(dir) {   // dir: +1 siguiente, -1 anterior
+    var v = visList(); if (!v.length) return;
+    var base = (pages[cur] && pages[cur].hidden) ? lastVis : cur;   // desde PITS (oculta) vuelve a contar desde CARRERA
+    var p = v.indexOf(base); if (p < 0) p = 0;
+    var n = (pages[cur] && pages[cur].hidden) ? base : v[(p + dir + v.length) % v.length];
+    return n;
+  }
+  document.addEventListener('touchstart', function (ev) { var t = ev.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; }, { passive: true });
+  document.addEventListener('touchmove', function (ev) {
+    var t = ev.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (!moved && (dx * dx + dy * dy) > 18 * 18) { moved = true; var pr = document.querySelectorAll('.key.pressed'); for (var i = 0; i < pr.length; i++) pr[i].classList.remove('pressed'); }
+  }, { passive: true });
+  document.addEventListener('touchend', function (ev) {
+    if (!moved) return;
+    var t = ev.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy, ax = Math.abs(dx), ay = Math.abs(dy);
+    if (Math.max(ax, ay) < 60) return;
+    var n, anim;
+    if (ax > ay) { n = swipe(dx < 0 ? 1 : -1); anim = dx < 0 ? 'inL' : 'inR'; }
+    else { n = swipe(dy < 0 ? 1 : -1); anim = dy < 0 ? 'inU' : 'inD'; }
+    if (n !== undefined && n !== cur) { showPage(n, anim); if (navigator.vibrate) navigator.vibrate(10); }
+  }, { passive: true });
+
+  // con el dedo: el boton se hunde al tocar y la accion sale al LEVANTAR (si no fue un deslizamiento)
+  function down(ev) {
+    var k = ev.currentTarget; ev.preventDefault();
+    if (k.className.indexOf('empty') >= 0) return;
+    k.classList.add('pressed');
+    if (ev.type === 'touchstart') { k._t = true; return; }
+    fire(k);
+  }
+  function fire(k) {
+    if (navigator.vibrate) navigator.vibrate(15);
+    var page = k.getAttribute('data-page');
+    if (page) { goToPageByName(page); return; }
+    if (k.getAttribute('data-lamp')) {
+      var on = k.classList.toggle('on');
+      var lbl = k.querySelector('.lbl'); if (lbl) lbl.textContent = on ? k.getAttribute('data-on') : k.getAttribute('data-off');
+    }
+    var id = k.getAttribute('data-id'); if (id) req('/press?id=' + id);
+    var goto = k.getAttribute('data-goto'); if (goto) goToPageByName(goto);
+  }
+  function up(ev) {
+    var k = ev.currentTarget; k.classList.remove('pressed');
+    if (ev.type === 'touchend' && k._t && !moved) fire(k);
+    k._t = false;
+  }
+
+  // pantalla completa al primer toque
+  function goFS() { var el = document.documentElement; var r = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen; if (r) { try { r.call(el); } catch (e) {} } }
+  document.addEventListener('touchend', goFS, { once: true });
+  document.addEventListener('click', goFS, { once: true });
+
+  // arrancar: traer las paginas desde /config y armarlas TODAS una sola vez
+  xhrGet('/config', function (err, txt) {
+    var cfg; try { cfg = JSON.parse(txt); } catch (e) { cfg = null; }
+    pages = (cfg && cfg.pages) ? cfg.pages : [];
+    pagesEl.innerHTML = '';
+    for (var i = 0; i < pages.length; i++) pagesEl.appendChild(makePage(pages[i]));
+    buildTabs();
+    showPage(0);
+    req('/state');
+    setInterval(function () { req('/state'); }, 1500);
+  });
+</script>
+</body>
+</html>

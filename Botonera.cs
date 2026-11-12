@@ -53,7 +53,7 @@ class Botonera
         return "adb.exe"; // en el PATH
     }
 
-    static void Log(string m) { try { File.AppendAllText(LogPath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " | " + m + Environment.NewLine); } catch { } }
+    static void Log(string m) { try { File.AppendAllText(LogPath, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " | " + m + Environment.NewLine); } catch { } }
 
     // ===== Config =====
     static Config DefaultConfig()
@@ -124,14 +124,40 @@ class Botonera
         return 0;
     }
     static bool Ext(byte k) { return (k >= 0x21 && k <= 0x2E) || k == VOL_UP || k == VOL_DN || k == VOL_MUTE; }
+    // Teclas por CODIGO FISICO (scancode, KEYEVENTF_SCANCODE): AC/CSP leen el teclado por DirectInput/raw input
+    // y no siempre ven las teclas mandadas solo por codigo virtual. Se mantienen 60 ms (AC lee el teclado una vez por cuadro).
+    [StructLayout(LayoutKind.Sequential)] struct KEYBDINPUT { public ushort wVk, wScan; public uint dwFlags, time; public IntPtr dwExtraInfo; }
+    [StructLayout(LayoutKind.Sequential)] struct MOUSEINPUT { public int dx, dy; public uint mouseData, dwFlags, time; public IntPtr dwExtraInfo; }
+    [StructLayout(LayoutKind.Explicit)] struct INPUTU { [FieldOffset(0)] public MOUSEINPUT mi; [FieldOffset(0)] public KEYBDINPUT ki; }
+    [StructLayout(LayoutKind.Sequential)] struct INPUT { public uint type; public INPUTU u; }
+    [DllImport("user32.dll", SetLastError = true)] static extern uint SendInput(uint n, INPUT[] inputs, int size);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+    const uint SCANCODE = 0x8;
+
+    static void KeyScan(byte vk, bool up)
+    {
+        uint sc = MapVirtualKey(vk, 0);
+        var inp = new INPUT[1];
+        inp[0].type = 1;
+        if (sc == 0) { inp[0].u.ki.wVk = vk; inp[0].u.ki.dwFlags = (up ? KEYUP : 0) | (Ext(vk) ? EXTENDED : 0); }
+        else { inp[0].u.ki.wScan = (ushort)sc; inp[0].u.ki.dwFlags = SCANCODE | (up ? KEYUP : 0) | (Ext(vk) ? EXTENDED : 0); }
+        SendInput(1, inp, Marshal.SizeOf(typeof(INPUT)));
+    }
+    static string Foreground()
+    {
+        try { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); return Process.GetProcessById((int)pid).ProcessName; } catch { return "?"; }
+    }
+    static readonly Dictionary<string, DateTime> LastPress = new Dictionary<string, DateTime>();
     static void SendKeys(string combo)
     {
         var keys = new List<byte>();
         foreach (var p in combo.Split('+')) { byte k = Vk(p); if (k != 0) keys.Add(k); }
         if (keys.Count == 0) return;
-        foreach (var k in keys) keybd_event(k, (byte)MapVirtualKey(k, 0), Ext(k) ? EXTENDED : 0, UIntPtr.Zero);
-        Thread.Sleep(30);
-        for (int i = keys.Count - 1; i >= 0; i--) keybd_event(keys[i], (byte)MapVirtualKey(keys[i], 0), KEYUP | (Ext(keys[i]) ? EXTENDED : 0), UIntPtr.Zero);
+        foreach (var k in keys) KeyScan(k, false);
+        Thread.Sleep(60);
+        for (int i = keys.Count - 1; i >= 0; i--) KeyScan(keys[i], true);
+        Log("tecla " + combo + " -> ventana al frente: " + Foreground());
     }
     static void Volume(string dir)
     {
@@ -196,7 +222,11 @@ class Botonera
             {
                 string id = c.Request.QueryString["id"] ?? "";
                 LoadConfig(false);
-                if (id.Length > 0) DoAction(id);
+                // anti-doble: el mismo boton dos veces en < 300 ms es un toque repetido por la tablet, no del usuario
+                bool dup = false;
+                lock (Lk) { DateTime prev; dup = LastPress.TryGetValue(id, out prev) && (DateTime.Now - prev).TotalMilliseconds < 300; LastPress[id] = DateTime.Now; }
+                if (dup) Log("ignorado doble toque: " + id);
+                else if (id.Length > 0) { Log("toque: " + id); DoAction(id); }
                 Send(c.Response, 200, "application/json", Encoding.UTF8.GetBytes(StateJson()));
                 return;
             }
