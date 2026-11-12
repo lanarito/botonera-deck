@@ -21,7 +21,9 @@
     },
     {
       "name": "DISCORD",
+      "hidden": true,
       "buttons": [
+        { "id": "dc_volver", "label": "INICIO", "icon": "icons/em_back.png", "type": "page", "val": "INICIO" },
         { "id": "dc_setuphub", "label": "SETUPHUB", "icon": "icons/dc_1564817157894709419.png", "type": "url", "val": "discord://-/channels/1564817157894709419" },
         { "id": "dc_acvra",    "label": "A.C.V.R.A.", "icon": "icons/dc_701613255876935710.png", "type": "url", "val": "discord://-/channels/701613255876935710" },
         { "id": "dc_apvs",     "label": "APVS",     "icon": "icons/dc_683379228665839618.png",  "type": "url", "val": "discord://-/channels/683379228665839618" },

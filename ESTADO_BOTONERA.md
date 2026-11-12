@@ -255,3 +255,4 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - Para un canal específico: `discord://-/channels/<guild>/<channel>` (Modo desarrollador → clic derecho en el canal → Copiar ID).
 
 - [2026-11-11] Se sacó SPOTIFY de INICIO. El botón DISCORD de INICIO abre Discord **y** salta a la página DISCORD (`"goto": "DISCORD"`).
+- [2026-11-11] Página DISCORD ahora **oculta** (sin pestaña arriba, `"hidden": true`): se entra SOLO con el botón DISCORD de INICIO; tiene botón 🔙 INICIO para volver (o deslizar).
