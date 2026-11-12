@@ -3,14 +3,13 @@
     {
       "name": "INICIO",
       "buttons": [
-        { "id": "discord",     "label": "DISCORD",     "icon": "icons/discord.png",     "type": "launch", "val": "%LOCALAPPDATA%\\Discord\\Update.exe", "args": "--processStart Discord.exe" },
+        { "id": "discord",     "label": "DISCORD",     "icon": "icons/discord.png",     "type": "launch", "val": "%LOCALAPPDATA%\\Discord\\Update.exe", "args": "--processStart Discord.exe", "goto": "DISCORD" },
         { "id": "simhub",      "label": "SIMHUB",      "icon": "icons/simhub.png",      "type": "launch", "val": "C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe" },
         { "id": "ac",          "label": "ASSETTO",     "icon": "icons/assetto.png",     "type": "launch", "val": "%USERPROFILE%\\Desktop\\Content Manager.exe" },
         { "id": "setuphub",    "label": "SETUPHUB",    "icon": "icons/setuphub.png",    "type": "launch", "val": "C:\\Program Files\\SetupHubPro\\app.exe" },
         { "id": "antigravity", "label": "ANTIGRAVITY", "icon": "icons/antigravity.png", "type": "launch", "val": "%LOCALAPPDATA%\\Programs\\Antigravity IDE\\Antigravity IDE.exe" },
         { "id": "youtube",     "label": "YOUTUBE",     "icon": "icons/youtube.png",     "type": "url",    "val": "https://www.youtube.com" },
         { "id": "google",      "label": "GOOGLE",      "icon": "icons/google.png",      "type": "url",    "val": "https://www.google.com" },
-        { "id": "spotify",     "label": "SPOTIFY",     "icon": "icons/spotify.png",     "type": "url",    "val": "https://open.spotify.com" },
         { "id": "steam",       "label": "STEAM",       "icon": "icons/steam.png",       "type": "url",    "val": "steam://open/main" },
         { "id": "gmail",       "label": "GMAIL",       "icon": "icons/gmail.png",       "type": "url",    "val": "https://mail.google.com" },
         { "id": "whatsapp",    "label": "WHATSAPP",    "icon": "icons/whatsapp.png",    "type": "url",    "val": "https://web.whatsapp.com" },

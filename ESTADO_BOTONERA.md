@@ -253,3 +253,5 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
   LOVELY 830070781328752651 · CAVALLI 1201912119772053584 · SRW 597803720717107200 · AIMAX 1233217808226058240 · AMA 1292849379576905790.
 - Limitación de Discord: no se puede ENTRAR a un canal de voz por enlace (abre el canal, hay que hacer clic para unirse).
 - Para un canal específico: `discord://-/channels/<guild>/<channel>` (Modo desarrollador → clic derecho en el canal → Copiar ID).
+
+- [2026-11-11] Se sacó SPOTIFY de INICIO. El botón DISCORD de INICIO abre Discord **y** salta a la página DISCORD (`"goto": "DISCORD"`).
