@@ -256,3 +256,4 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 
 - [2026-11-11] Se sacó SPOTIFY de INICIO. El botón DISCORD de INICIO abre Discord **y** salta a la página DISCORD (`"goto": "DISCORD"`).
 - [2026-11-11] Página DISCORD ahora **oculta** (sin pestaña arriba, `"hidden": true`): se entra SOLO con el botón DISCORD de INICIO; tiene botón 🔙 INICIO para volver (o deslizar).
+- [2026-11-11] Look: fondo **negro total** (#000, sin aluminio cepillado) para que resalten las luces; botones **126 px** (antes 116) con **30 px** de separación (antes 20) → 8 por fila; huecos LIBRE completan la fila según el ancho.
