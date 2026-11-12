@@ -243,3 +243,13 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - **Teclas a AC:** ahora por **scancode** con `SendInput` (KEYEVENTF_SCANCODE), 60 ms apretadas (AC/CSP leen DirectInput/raw input).
   Cada tecla se loguea con la **ventana que estaba al frente** (`tecla f18 -> ventana al frente: acs`) → si no anda, mirar eso.
   Log ahora con milisegundos y cada toque (`toque: <id>`).
+
+## 15. [CLAUDE PC del simu — 2026-11-11] Página DISCORD (servidores del usuario) ✅
+- IDs sacados de la caché local de Discord (`%APPDATA%\discord\Cache`, URLs `cdn.discordapp.com/icons/<guild>/<hash>`), logos bajados
+  a 128 px → `web/icons/dc_<guild>.png`. Nombres: widget público de Discord (APVS, Lovely Sim Racing, Sim Racing Workshop) y título de la
+  ventana de Discord al abrir cada uno (E. Cavalli, AlMaX, Setup Hub Pro, AMA).
+- Botones `type: url`, `val: discord://-/channels/<guild_id>` → abre Discord en ese servidor (último canal visto). Probado con AMA/Cavalli/AlMaX/SetupHub.
+- Orden = barra de Discord: SETUPHUB 1564817157894709419 · A.C.V.R.A. 701613255876935710 · APVS 683379228665839618 · DPDL 293526880966148096 ·
+  LOVELY 830070781328752651 · CAVALLI 1201912119772053584 · SRW 597803720717107200 · AIMAX 1233217808226058240 · AMA 1292849379576905790.
+- Limitación de Discord: no se puede ENTRAR a un canal de voz por enlace (abre el canal, hay que hacer clic para unirse).
+- Para un canal específico: `discord://-/channels/<guild>/<channel>` (Modo desarrollador → clic derecho en el canal → Copiar ID).

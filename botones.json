@@ -21,6 +21,20 @@
       ]
     },
     {
+      "name": "DISCORD",
+      "buttons": [
+        { "id": "dc_setuphub", "label": "SETUPHUB", "icon": "icons/dc_1564817157894709419.png", "type": "url", "val": "discord://-/channels/1564817157894709419" },
+        { "id": "dc_acvra",    "label": "A.C.V.R.A.", "icon": "icons/dc_701613255876935710.png", "type": "url", "val": "discord://-/channels/701613255876935710" },
+        { "id": "dc_apvs",     "label": "APVS",     "icon": "icons/dc_683379228665839618.png",  "type": "url", "val": "discord://-/channels/683379228665839618" },
+        { "id": "dc_dpdl",     "label": "DPDL",     "icon": "icons/dc_293526880966148096.png",  "type": "url", "val": "discord://-/channels/293526880966148096" },
+        { "id": "dc_lovely",   "label": "LOVELY",   "icon": "icons/dc_830070781328752651.png",  "type": "url", "val": "discord://-/channels/830070781328752651" },
+        { "id": "dc_cavalli",  "label": "CAVALLI", "icon": "icons/dc_1201912119772053584.png", "type": "url", "val": "discord://-/channels/1201912119772053584" },
+        { "id": "dc_srw",      "label": "SRW",      "icon": "icons/dc_597803720717107200.png",  "type": "url", "val": "discord://-/channels/597803720717107200" },
+        { "id": "dc_aimax",    "label": "AIMAX",    "icon": "icons/dc_1233217808226058240.png", "type": "url", "val": "discord://-/channels/1233217808226058240" },
+        { "id": "dc_ama",      "label": "AMA",      "icon": "icons/dc_1292849379576905790.png", "type": "url", "val": "discord://-/channels/1292849379576905790" }
+      ]
+    },
+    {
       "name": "CARRERA",
       "buttons": [
         { "id": "ac_camara",    "label": "CÁMARA",   "icon": "icons/em_camera.png",   "type": "key",  "val": "f18" },
