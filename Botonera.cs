@@ -1158,19 +1158,21 @@ class Botonera
     {
         try
         {
-            string cmds = "/c netsh http add urlacl url=http://+:" + Port + "/ user=Everyone & " +
+            string cmds = "/c netsh http delete urlacl url=http://+:" + Port + "/ & " +
+                          "netsh http add urlacl url=http://+:" + Port + "/ sddl=D:(A;;GX;;;WD) & " +
                           "netsh advfirewall firewall delete rule name=\"BotoneraDeck\" & " +
                           "netsh advfirewall firewall add rule name=\"BotoneraDeck\" dir=in action=allow protocol=TCP localport=" + Port;
             var p = Process.Start(new ProcessStartInfo("cmd.exe", cmds) { Verb = "runas", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
             if (p == null) return false;
             p.WaitForExit(15000);
             if (p.ExitCode != 0) return false;
+            string exe = Process.GetCurrentProcess().MainModule.FileName;
             Log("Red WiFi/Firewall habilitada. Reiniciando server...");
             new Thread(() => {
                 Thread.Sleep(400);
                 try { if (Listener != null) Listener.Stop(); } catch { }
                 try { if (AppMutex != null) { AppMutex.ReleaseMutex(); AppMutex.Dispose(); AppMutex = null; } } catch { }
-                try { Process.Start(Application.ExecutablePath); } catch { }
+                try { Process.Start(exe); } catch { }
                 Environment.Exit(0);
             }).Start();
             return true;

@@ -198,9 +198,11 @@ fetch('/netinfo', { cache: 'no-store' }).then(function (r) { return r.json(); })
   if (d.lan) {
     st.className = 'badge ok';
     st.textContent = 'WiFi / Red local ACTIVA (' + d.ip + ':' + d.port + ')';
+    document.getElementById('qrWrap').style.display = 'inline-block';
   } else {
     st.className = 'badge warn';
-    st.textContent = 'Falta habilitar permiso WiFi / Firewall en Windows';
+    st.textContent = 'Falta habilitar permiso WiFi / Firewall (tocá el botón azul de abajo)';
+    document.getElementById('qrWrap').style.display = 'none';
     document.getElementById('btnEnable').style.display = '';
   }
 });
