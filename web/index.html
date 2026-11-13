@@ -32,12 +32,14 @@
   .tab { padding: 7px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d; white-space: nowrap;
     background: #07080a; border: 1px solid #1c1f25; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
   .tab.active { color: #fff; border-color: #5865F2; box-shadow: 0 0 16px -2px #5865F2, inset 0 0 12px -5px #5865F2; text-shadow: 0 0 8px #5865F2; }
+  .tab.fs-tab { font-size: 16px; padding: 6px 14px; }
   body.compact .tab { padding: 5px 12px; font-size: 12px; border-radius: 10px; letter-spacing: 1px; }
+  body.compact .tab.fs-tab { font-size: 14px; padding: 4px 10px; }
 
-  #pages { position: absolute; top: var(--tabsH); left: 0; right: 0; bottom: 0; overflow-y: auto; }
-  .page { display: none; padding: 16px 22px 24px; }
-  body.compact .page { padding: 8px 12px 16px; }
-  .page.active { display: block; }
+  #pages { position: absolute; top: var(--tabsH); left: 0; right: 0; bottom: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .page { display: none; width: 100%; height: 100%; box-sizing: border-box; padding: var(--padY, 8px) var(--padX, 12px); overflow: hidden; }
+  .page.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  body.compact .page { padding: var(--padY, 6px) var(--padX, 8px); }
   /* deslizar entre paginas: entrada corta desde el lado del gesto */
   html, body { touch-action: none; }
   .page.active.inL { animation: inL .16s ease-out; } .page.active.inR { animation: inR .16s ease-out; }
@@ -46,8 +48,8 @@
   @keyframes inR { from { transform: translateX(-60px); opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inU { from { transform: translateY(50px);  opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inD { from { transform: translateY(-50px); opacity: .2; } to { transform: none; opacity: 1; } }
-  .grid { display: grid; grid-template-columns: repeat(var(--cols, auto-fill), var(--size)); gap: var(--gap); justify-content: center; align-content: start; }
-  .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: var(--dgap); justify-content: center; margin: 20px auto 0; }
+  .grid { display: grid; gap: var(--gap); justify-content: center; align-content: center; }
+  .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: var(--dgap); justify-content: center; align-content: center; margin: 10px auto 0; }
   .dpad .up { grid-column: 2; grid-row: 1; }
   .dpad .left { grid-column: 1; grid-row: 2; }
   .dpad .right { grid-column: 3; grid-row: 2; }
@@ -57,6 +59,11 @@
   .well { position: absolute; top:0;left:0;right:0;bottom:0; border-radius: 26px;
     background: radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0) 0%, #040506 75%), #040506;
     box-shadow: inset 0 8px 14px rgba(0,0,0,.95), inset 0 -1px 0 rgba(255,255,255,.07), 0 1px 0 rgba(255,255,255,.09), 0 -1px 0 rgba(0,0,0,.6); }
+  body.compact .well { border-radius: 16px; }
+  body.compact .well::after, body.compact .well::before { border-radius: 13px; top: 4px; left: 4px; right: 4px; bottom: 2px; }
+  body.compact .cap { border-radius: 13px; top: 4px; left: 4px; right: 4px; bottom: 4px; }
+  body.compact .face { border-radius: 10px; top: 2px; left: 2px; right: 2px; bottom: 8px; }
+  body.compact .key.pressed .cap { transform: translate3d(0, 4px, 0); }
   /* RAPIDO (tablet vieja): todo lo pesado (resplandores con desenfoque) se dibuja UNA vez en capas propias.
      Al apretar solo cambian transform y opacity, que mueve la placa de video sin redibujar. */
   .well::after { content: ""; position: absolute; top:6px;left:6px;right:6px;bottom:2px; border-radius: 22px;
@@ -154,65 +161,56 @@
   function calcLayout() {
     var w = window.innerWidth || document.documentElement.clientWidth || 800;
     var h = window.innerHeight || document.documentElement.clientHeight || 600;
-    var compact = w < 780 || h < 550;
-    var tabsH = compact ? 42 : 56;
-    var padX = compact ? 12 : 28;
-    var padY = compact ? 8 : 16;
-    var gap = compact ? 10 : 22;
-    var dgap = compact ? 10 : 18;
-    var cols = 8;
-    var sz = 126;
 
-    if (w < 600 && h > w) {
-      // Celular VERTICAL: 3 columnas, 5 filas para que entren los 15 botones sin scroll
-      cols = 3;
-      var szW = Math.floor((w - padX * 2 - gap * (cols - 1)) / cols);
-      var szH = Math.floor((h - tabsH - padY * 2 - gap * 4) / 5);
-      sz = Math.min(szW, szH);
-      if (sz < 64) sz = 64;
-      if (sz > 120) sz = 120;
-    } else if (h < 550 && w > h) {
-      // Celular HORIZONTAL: 5 columnas (3 filas) o 8 columnas (2 filas)
-      // Calculamos para 5 columnas x 3 filas:
-      var s5W = Math.floor((w - padX * 2 - gap * 4) / 5);
-      var s5H = Math.floor((h - tabsH - padY * 2 - gap * 2) / 3);
-      var s5 = Math.min(s5W, s5H);
+    var compact = w < 850 || h < 550;
+    var tabsH = compact ? 42 : 54;
+    var padX = compact ? 8 : 24;
+    var padY = compact ? 6 : 14;
+    var gap = compact ? 8 : 22;
 
-      // Calculamos para 8 columnas x 2 filas:
-      var s8W = Math.floor((w - padX * 2 - gap * 7) / 8);
-      var s8H = Math.floor((h - tabsH - padY * 2 - gap * 1) / 2);
-      var s8 = Math.min(s8W, s8H);
+    var availW = w - padX * 2;
+    var availH = h - tabsH - padY * 2;
 
-      if (s5 >= s8 && s5 >= 75) {
-        cols = 5; sz = s5;
-      } else {
-        cols = 8; sz = s8;
-      }
-      if (sz < 64) sz = 64;
-      if (sz > 115) sz = 115;
-    } else if (w < 900) {
-      // Tablet chica (7" - 8")
-      cols = 6;
-      sz = Math.floor((w - padX * 2 - gap * (cols - 1)) / cols);
-      if (sz > 118) sz = 118;
-      if (sz < 80) sz = 80;
+    var bestSz = 50, bestCols = 4;
+
+    if (w >= 1000 && h >= 550) {
+      // Tablet grande (Tab 2) o PC: 8 columnas de 126px
+      bestCols = 8;
+      bestSz = 126;
+      gap = 24;
     } else {
-      // Tablet grande (Tab 2) o PC: 8 columnas clásicas de 126px
-      cols = 8;
-      sz = 126;
-      gap = 26;
+      // Teléfono o pantalla chica: probar columnas (3 a 8) y buscar la que maximice
+      // el tamaño del botón entrando los 15 botones 100% dentro de la pantalla
+      for (var c = 3; c <= 8; c++) {
+        var r = Math.ceil(15 / c);
+        var gX = (c - 1) * gap;
+        var gY = (r - 1) * gap;
+        var maxW = Math.floor((availW - gX) / c);
+        var maxH = Math.floor((availH - gY) / r);
+        var s = Math.min(maxW, maxH);
+        if (s > 120) s = 120;
+        if (s > bestSz) {
+          bestSz = s;
+          bestCols = c;
+        }
+      }
     }
 
-    var lbl = sz < 80 ? 9 : (sz < 98 ? 10 : (sz < 112 ? 11 : 12));
-    curSz = sz; curGap = gap; curCols = cols;
+    if (bestSz < 50) bestSz = 50;
+    curSz = bestSz;
+    curCols = bestCols;
+    curGap = gap;
 
+    var lbl = curSz < 76 ? 9 : (curSz < 94 ? 10 : (curSz < 112 ? 11 : 12));
     var st = document.body.style;
-    st.setProperty('--size', sz + 'px');
-    st.setProperty('--cols', cols);
-    st.setProperty('--gap', gap + 'px');
-    st.setProperty('--dgap', dgap + 'px');
+    st.setProperty('--size', curSz + 'px');
+    st.setProperty('--gap', curGap + 'px');
+    st.setProperty('--dgap', Math.max(6, Math.floor(curGap * 0.8)) + 'px');
     st.setProperty('--lbl', lbl + 'px');
     st.setProperty('--tabsH', tabsH + 'px');
+    st.setProperty('--padX', padX + 'px');
+    st.setProperty('--padY', padY + 'px');
+
     document.body.className = compact ? 'compact' : '';
   }
 
@@ -227,8 +225,11 @@
     grid.style.gridTemplateColumns = 'repeat(' + curCols + ', ' + curSz + 'px)';
     var old = grid.querySelectorAll('.key.empty');
     for (var j = 0; j < old.length; j++) grid.removeChild(old[j]);
-    var pad = Math.ceil(normalCount / curCols) * curCols;
-    for (var i = normalCount; i < pad; i++) grid.appendChild(makeKey(null, true));
+    // Solo rellenar en pantallas grandes de tablet/PC para completar la fila
+    if (window.innerWidth >= 1000 && window.innerHeight >= 550) {
+      var pad = Math.ceil(normalCount / curCols) * curCols;
+      for (var i = normalCount; i < pad; i++) grid.appendChild(makeKey(null, true));
+    }
   }
 
   var gridsMeta = [];
