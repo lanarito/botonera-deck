@@ -1,0 +1,85 @@
+{
+  "info": "Lista de atajos que aparece en el EDITOR (Apretar teclas > desplegable). Se puede editar: agrega juegos o acciones copiando una linea. val = teclas como en botones.json.",
+  "programas_info": "Programas de simracing del desplegable de 'Abrir un programa'. buscar = parte del nombre del acceso en el menu Inicio/Escritorio (expresion regular); ruta = donde se instala normalmente (por si no hay acceso). volante=true: se usa para el boton VOLANTE automatico.",
+  "programas": [
+    { "nombre": "MOZA Pit House",          "label": "MOZA",    "volante": true, "buscar": "moza pit house|^moza$",              "ruta": "C:\\Program Files (x86)\\MOZA Pit House\\MOZA Pit House.exe" },
+    { "nombre": "Logitech G HUB",          "label": "G HUB",   "volante": true, "buscar": "g ?hub|lghub",                       "ruta": "C:\\Program Files\\LGHUB\\lghub.exe" },
+    { "nombre": "Simagic SimPro Manager",  "label": "SIMAGIC", "volante": true, "buscar": "simpro|simagic",                     "ruta": "" },
+    { "nombre": "Fanatec App",             "label": "FANATEC", "volante": true, "buscar": "fanatec",                            "ruta": "" },
+    { "nombre": "Thrustmaster",            "label": "THRUSTMASTER", "volante": true, "buscar": "thrustmaster",                  "ruta": "" },
+    { "nombre": "SimHub",                  "label": "SIMHUB",  "buscar": "simhub",                                              "ruta": "C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe" },
+    { "nombre": "Content Manager (Assetto)", "label": "ASSETTO", "buscar": "content manager",                                   "ruta": "" },
+    { "nombre": "iRacing",                 "label": "IRACING", "buscar": "iracing",                                             "ruta": "" },
+    { "nombre": "Crew Chief",              "label": "CREW CHIEF", "buscar": "crew ?chief",                                      "ruta": "" }
+  ],
+  "juegos": [
+    {
+      "nombre": "Assetto Corsa",
+      "nota": "Estas teclas las carga solo \"Botonera - Asignar teclas en AC\" (con AC cerrado). AC tiene que estar al frente.",
+      "acciones": [
+        { "label": "CÁMARA",       "val": "f18",              "icon": "icons/em_camera.png" },
+        { "label": "MIRAR ←",      "val": "q",                "icon": "icons/em_lookleft.png" },
+        { "label": "MIRAR →",      "val": "e",                "icon": "icons/em_lookright.png" },
+        { "label": "MIRAR ATRÁS",  "val": "w",                "icon": "icons/em_lookback.png" },
+        { "label": "FOV +",        "val": "num+",             "icon": "icons/em_fovplus.png" },
+        { "label": "FOV −",        "val": "num-",             "icon": "icons/em_fovminus.png" },
+        { "label": "CÁM ↑",        "val": "num8",             "icon": "icons/em_camup.png" },
+        { "label": "CÁM ↓",        "val": "num2",             "icon": "icons/em_camdown.png" },
+        { "label": "ADELANTE",     "val": "f14",              "icon": "icons/em_seatfwd.png" },
+        { "label": "ATRÁS",        "val": "f15",              "icon": "icons/em_seatback.png" },
+        { "label": "VISTA ORIG.",  "val": "f16",              "icon": "icons/em_seatreset.png" },
+        { "label": "PITS",         "val": "f24",              "icon": "icons/em_flag.png" },
+        { "label": "NOMBRES",      "val": "l",                "icon": "icons/em_names.png" },
+        { "label": "APPS / HUD",   "val": "h",                "icon": "icons/em_apps.png" },
+        { "label": "OCULTAR TODO", "val": "ctrl+shift+alt+h", "icon": "icons/em_hideall.png" },
+        { "label": "CAMBIAR APPS", "val": "f13",              "icon": "icons/em_desktops.png" },
+        { "label": "ESPEJO",       "val": "f11",              "icon": "icons/em_mirror.png" },
+        { "label": "LÍNEA IDEAL",  "val": "i",                "icon": "icons/em_idealline.png" },
+        { "label": "DAÑOS",        "val": "j",                "icon": "icons/em_damage.png" },
+        { "label": "CAPTURA",      "val": "f8",               "icon": "icons/em_screenshot.png" },
+        { "label": "GUARDAR CLIP", "val": "ctrl+shift+s",     "icon": "icons/em_clip.png" },
+        { "label": "PAUSA",        "val": "f19",              "icon": "icons/em_pause.png" },
+        { "label": "SETUP AUTO",   "val": "f17",              "icon": "icons/em_setup.png" },
+        { "label": "OK",           "val": "enter",            "icon": "icons/em_check.png" },
+        { "label": "SALIR",        "val": "esc",              "icon": "icons/em_cross.png" }
+      ]
+    },
+    {
+      "nombre": "iRacing",
+      "nota": "Teclas SUGERIDAS (libres). Para que iRacing las tome: guarda, y en iRacing > Opciones > Controles hace clic en la accion y toca el boton en la tablet.",
+      "acciones": [
+        { "label": "PIT LIMITER",   "val": "ctrl+shift+f1",  "icon": "icons/em_flag.png" },
+        { "label": "ENCENDIDO",     "val": "ctrl+shift+f2",  "icon": "icons/em_knobs.png" },
+        { "label": "ARRANCAR",      "val": "ctrl+shift+f3",  "icon": "icons/em_wrench.png" },
+        { "label": "LUCES",         "val": "ctrl+shift+f4",  "icon": "icons/em_idealline.png" },
+        { "label": "RÁFAGA",        "val": "ctrl+shift+f5",  "icon": "icons/em_idealline.png" },
+        { "label": "MIRAR ←",       "val": "ctrl+shift+f6",  "icon": "icons/em_lookleft.png" },
+        { "label": "MIRAR →",       "val": "ctrl+shift+f7",  "icon": "icons/em_lookright.png" },
+        { "label": "BLACK BOX ←",   "val": "ctrl+shift+f8",  "icon": "icons/em_left.png" },
+        { "label": "BLACK BOX →",   "val": "ctrl+shift+f9",  "icon": "icons/em_right.png" },
+        { "label": "AJUSTE +",      "val": "ctrl+shift+f10", "icon": "icons/em_up.png" },
+        { "label": "AJUSTE −",      "val": "ctrl+shift+f11", "icon": "icons/em_down.png" },
+        { "label": "CHAT",          "val": "ctrl+shift+f12", "icon": "icons/em_names.png" }
+      ]
+    },
+    {
+      "nombre": "Discord",
+      "nota": "Asigna la misma combinacion en Discord > Ajustes > Atajos de teclado.",
+      "acciones": [
+        { "label": "MIC",          "val": "ctrl+shift+alt+f9",  "icon": "icons/em_mic.png" },
+        { "label": "ENSORDECER",   "val": "ctrl+shift+alt+f10", "icon": "icons/em_headphones.png" }
+      ]
+    },
+    {
+      "nombre": "Windows",
+      "nota": "Andan solas, sin configurar nada.",
+      "acciones": [
+        { "label": "RECORTE PANTALLA", "val": "win+shift+s",  "icon": "icons/em_screenshot.png" },
+        { "label": "ESCRITORIO",       "val": "win+d",        "icon": "icons/em_desktops.png" },
+        { "label": "CAMBIAR VENTANA",  "val": "alt+tab",      "icon": "icons/em_right.png" },
+        { "label": "GRABAR (XBOX)",    "val": "win+alt+g",    "icon": "icons/em_clip.png" },
+        { "label": "ADMIN. TAREAS",    "val": "ctrl+shift+esc", "icon": "icons/em_wrench.png" }
+      ]
+    }
+  ]
+}

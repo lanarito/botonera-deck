@@ -176,8 +176,13 @@
     }
   }
 
+  var cfgVer = null;   // si botones.json cambia (editor de la PC) se recarga sola, quedandose en la misma pagina
   function apply(s) {
     dot.className = 'ok';
+    if (s._cfg) {
+      if (cfgVer === null) cfgVer = s._cfg;
+      else if (cfgVer !== s._cfg) { cfgVer = s._cfg; location.hash = 'p' + cur; location.reload(); return; }
+    }
     for (var i = 0; i < allKeys.length; i++) {
       var k = allKeys[i], id = k.getAttribute('data-id');
       if (id && s.hasOwnProperty(id)) {
@@ -254,7 +259,8 @@
     pagesEl.innerHTML = '';
     for (var i = 0; i < pages.length; i++) pagesEl.appendChild(makePage(pages[i]));
     buildTabs();
-    showPage(0);
+    var hp = parseInt((location.hash || '').replace('#p', ''), 10);
+    showPage((hp >= 0 && hp < pages.length) ? hp : 0);
     req('/state');
     setInterval(function () { req('/state'); }, 1500);
   });

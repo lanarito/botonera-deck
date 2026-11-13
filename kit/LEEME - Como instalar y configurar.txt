@@ -1,4 +1,4 @@
-﻿==========================================================================
+==========================================================================
   BOTONERA DECK  -  botonera tactil para el simulador, en una tablet Android
 ==========================================================================
 
@@ -41,9 +41,16 @@ QUE NECESITAS
     - Baja la herramienta USB oficial de Google y la app de pantalla
       completa para la tablet (Webview Kiosk, gratis)
     - La deja arrancando sola con Windows
-    - Crea en el Escritorio:  "Botonera - Editar botones",
-      "Botonera - Asignar teclas en AC", "Botonera - Reiniciar",
-      "Botonera - Guia"
+    - NO llena el Escritorio: todo queda en la carpeta C:\BotoneraDeck,
+      con estos accesos adentro (al terminar te abre la carpeta):
+        "Botonera - EDITOR de botones"   (cambiar botones con el mouse)
+        "Botonera - botones.json (avanzado)"
+        "Botonera - Carpeta de iconos"   (las imagenes de los botones)
+        "Botonera - Asignar teclas en AC"
+        "Botonera - Reiniciar"           (si algo se trabo)
+        "Botonera - Guia"                (esta guia)
+      Si queres tenerla a mano: clic derecho en C:\BotoneraDeck >
+      "Anclar a Acceso rapido".
     - Si la tablet esta enchufada y autorizada, le instala la app sola.
     Si Windows pregunta "Windows protegio su PC": "Mas informacion" >
     "Ejecutar de todas formas" (es porque el programa no esta firmado).
@@ -72,7 +79,7 @@ QUE NECESITAS
  PASO 4 - TECLAS EN ASSETTO CORSA (una sola vez)
 --------------------------------------------------------------------------
  Con Assetto Corsa CERRADO: doble clic en  "Botonera - Asignar teclas en AC"
- (Escritorio). Hace backup de tus controles y solo agrega la tecla de cada
+ (en C:\BotoneraDeck). Hace backup de tus controles y solo agrega la tecla de cada
  accion; lo que tengas en el volante queda igual. Teclas que usa:
    CAMARA F18 | MIRAR izq/der/atras Q/E/W | FOV +/- Num+/Num-
    CAM arriba/abajo Num8/Num2 | ADELANTE/ATRAS F14/F15 | VISTA ORIG. F16
@@ -85,19 +92,65 @@ QUE NECESITAS
 
 
 --------------------------------------------------------------------------
- PASO 5 - DISCORD: MIC Y AURICULARES (opcional)
+ AUTOMATICO LA PRIMERA VEZ (no hay que hacer nada)
 --------------------------------------------------------------------------
+ - Boton VOLANTE (en INICIO): se convierte solo en el programa de tu
+   volante (MOZA Pit House, Logitech G HUB, Simagic, Fanatec o
+   Thrustmaster), con su icono.
+ - Pagina DISCORD (boton DISCORD de INICIO): a los ~15 segundos de
+   arrancar, la botonera busca TUS servidores de Discord y arma la
+   pagina con sus nombres y logos. Discord se abre y pasa solo por cada
+   servidor unos segundos (con la pantalla agrandada): NO toques nada
+   mientras tanto; al final vuelve a quedar como estaba.
+   Requisitos: Discord instalado, con tu sesion iniciada, y haber entrado
+   alguna vez a cada servidor.
+   Si despues entras a otros servidores: EDITOR > "Actualizar mis
+   servidores de Discord".
+
+--------------------------------------------------------------------------
+ PASO 5 - DISCORD: BOTON MIC (opcional)
+--------------------------------------------------------------------------
+ AURICULARES y VOLUMEN -/+ manejan el volumen GENERAL de Windows: andan
+ solos. El boton MIC silencia tu microfono en Discord; para eso:
  Discord > Ajustes de usuario > Atajos de teclado > Anadir atajo:
    "Activar/desactivar silencio" ........ Ctrl+Shift+Alt+F9
-   "Activar/desactivar ensordecimiento" . Ctrl+Shift+Alt+F10
  (para grabar el atajo, apretar las teclas a la vez en el teclado)
 
 
 ==========================================================================
- CONFIGURAR TUS BOTONES  (archivo C:\BotoneraDeck\botones.json)
+ CONFIGURAR TUS BOTONES - LO FACIL: EL EDITOR
 ==========================================================================
- Abrilo con "Botonera - Editar botones" (Escritorio). Guarda (Ctrl+S) y despues
- doble clic en "Botonera - Reiniciar": la tablet se recarga con los cambios.
+ Doble clic en "Botonera - EDITOR de botones" (en C:\BotoneraDeck): se
+ abre en el navegador de la PC una copia de la botonera.
+ (o escribi en el navegador:  localhost:8790/editor.html )
+
+  - Toca un boton para cambiarlo; "+ AGREGAR" para crear uno nuevo.
+  - Para MOVERLO: arrastralo con el mouse a otro lugar.
+  - "Que hace":
+      Abrir un programa -> elegilo del DESPLEGABLE (estan todos los del
+        menu Inicio y del Escritorio; escribi arriba para buscar). Toma
+        solo la ruta, el nombre y el ICONO del programa. Si no esta en la
+        lista: "Buscar…" y elegis el .exe en la ventana de Windows.
+        Tambien sirven los accesos a juegos de Steam del Escritorio.
+      Abrir una pagina web -> pegar la direccion.
+      Apretar teclas -> elegi la accion del DESPLEGABLE (Assetto Corsa,
+        iRacing, Discord, Windows) o "Grabar" y apretas la combinacion.
+        En iRacing: guarda, entra a Opciones > Controles, hace clic en la
+        accion y toca el boton en la tablet: iRacing la toma sola.
+      Volumen de Windows / Ir a otra pagina.
+  - Icono: "Elegir de la lista" (los que ya hay) o "Imagen de la PC…".
+  - Arriba se cambia de pagina; "+ Pagina" agrega otra.
+  - GUARDAR (arriba a la derecha): la tablet se actualiza SOLA en un par
+    de segundos. Queda un backup del anterior en botones_backup.json.
+  - "Probar" ejecuta el boton (despues de guardar).
+  - La lista de acciones de juegos esta en C:\BotoneraDeck\web\atajos.json
+    (se puede editar para agregar juegos).
+
+==========================================================================
+ CONFIGURAR TUS BOTONES A MANO  (archivo C:\BotoneraDeck\botones.json)
+==========================================================================
+ Abrilo con "Botonera - botones.json (avanzado)". Guarda (Ctrl+S): la
+ tablet se actualiza sola.
  Si algo deja de andar, casi siempre es una coma o comilla de mas/menos.
  Antes de cambiar mucho, hace una copia del archivo.
 
@@ -141,9 +194,77 @@ QUE NECESITAS
      que tenga "goto" o "type": "page"), como PITS.
    - El orden de las paginas y de los botones es el orden del archivo.
 
- ICONOS: ponelos en C:\BotoneraDeck\web\icons\ (png). Emojis lindos y
- gratis (Twemoji): https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/1f3c1.png (cambiar el codigo del emoji) o usar
- cualquier logo png. Los que vienen se llaman em_*.png.
+
+==========================================================================
+ ICONOS: CAMBIAR, AGREGAR Y MODIFICAR LAS IMAGENES DE LOS BOTONES
+==========================================================================
+ Las imagenes estan en la carpeta  C:\BotoneraDeck\web\icons\
+ (acceso "Botonera - Carpeta de iconos"). Cada boton dice cual usa en su
+ parte "icon", por ejemplo:   "icon": "icons/youtube.png"
+ o sea: el archivo youtube.png de esa carpeta.
+
+ QUE IMAGEN SIRVE
+   - Formato PNG (lo mejor, permite fondo transparente), JPG o SVG.
+   - Cuadrada. Con 128x128 o 256x256 alcanza (mas grande anda igual,
+     pero pesa mas y la tablet tarda mas en cargar).
+   - Fondo TRANSPARENTE queda mucho mejor: el logo "flota" sobre la luz
+     del boton. Con fondo blanco se ve un cuadrado blanco.
+   - Nombre del archivo: en minusculas, sin espacios, sin acentos ni ñ.
+     Bien: mi_juego.png   Mal: "Mi Juego (1).PNG"
+
+ DONDE CONSEGUIRLAS
+   - Logos de programas/paginas: buscar en Google Imagenes
+     "NOMBRE logo png transparente" > abrir la imagen > clic derecho >
+     "Guardar imagen como..." > guardarla en la carpeta de iconos.
+   - Emojis lindos y gratis (Twemoji, son los em_*.png que ya vienen):
+       https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/1f3c1.png
+     El "1f3c1" es el codigo del emoji (1f3c1 = bandera a cuadros).
+     Para otro emoji: buscalo en https://emojipedia.org , abajo de todo
+     dice "Codepoints: U+1F3C1": usa lo que va despues de U+ en minuscula.
+     Abrí el link en el navegador > clic derecho > Guardar imagen como.
+   - Si la imagen no es PNG/JPG (por ejemplo .webp o .ico): abrila con
+     Paint y "Guardar como" > PNG.
+
+ LO MAS FACIL: en el EDITOR, toca el boton > Icono > "Imagen de la PC…"
+ (la copia sola a la carpeta y la achica) o "Elegir de la lista".
+ Al elegir un programa del desplegable, su icono se pone solo.
+ Lo que sigue es para hacerlo a mano:
+
+ A) CAMBIAR EL ICONO DE UN BOTON QUE YA EXISTE
+   1. Guardá la imagen nueva en la carpeta de iconos, ej.  mi_logo.png
+   2. "Botonera - botones.json (avanzado)" > buscá el boton (Ctrl+B y el nombre,
+      ej. YOUTUBE) > cambiá SOLO lo que esta entre comillas despues de
+      "icon":
+          antes:  "icon": "icons/youtube.png"
+          despues "icon": "icons/mi_logo.png"
+      (el  icons/  de adelante va SIEMPRE; la barra es / , no \ )
+   3. Guardar (Ctrl+S): la tablet se actualiza sola.
+   Otra forma, sin tocar botones.json: reemplazar el archivo con uno
+   nuevo con EXACTAMENTE el mismo nombre (ej. pisar youtube.png) y
+   reiniciar. Ojo que el viejo se pierde: guardalo antes si lo queres.
+
+ B) AGREGAR UN BOTON NUEVO CON SU ICONO
+   1. Guardá la imagen en la carpeta de iconos, ej.  twitch.png
+   2. En botones.json, en la pagina que quieras, copiá la linea de un
+      boton parecido, pegala abajo y cambiale id, label, icon y val:
+        { "id": "twitch", "label": "TWITCH", "icon": "icons/twitch.png", "type": "url", "val": "https://www.twitch.tv" },
+   3. Revisá las comas: cada linea termina en coma MENOS la ultima de la
+      pagina.
+   4. Guardar (Ctrl+S): la tablet se actualiza sola.
+   La posicion en la tablet es el orden en el archivo: para mover un
+   boton, cortá su linea entera y pegala mas arriba o mas abajo.
+
+ C) BOTON SIN IMAGEN
+   Poné  "icon": ""  y se ve solo el texto.
+
+ SI EL ICONO NO APARECE (boton sin dibujo)
+   - El nombre en botones.json tiene que ser IGUAL al del archivo,
+     incluida la extension: si el archivo es logo.PNG o logo.jpg, no
+     anda "logo.png". Para ver las extensiones: en la carpeta, menu
+     Vista > Mostrar > "Extensiones de nombre de archivo".
+   - Ojo con Windows que esconde ".png" y te deja "logo.png.png".
+   - Hiciste "Botonera - Reiniciar"? Si sigue igual, desenchufá y
+     enchufá la tablet.
 
  DISCORD DIRECTO A UN SERVIDOR: Discord > Ajustes > Avanzado > Modo
  desarrollador ON. Clic derecho en el servidor > Copiar ID. Boton:

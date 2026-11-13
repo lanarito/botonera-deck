@@ -1,6 +1,6 @@
 # Botonera Deck - instalador (lo llama INSTALAR.bat). No necesita administrador.
 # Copia la botonera a C:\BotoneraDeck, baja la herramienta USB de Google (adb) y la app de pantalla completa
-# para la tablet, la deja arrancando con Windows y crea accesos directos en el Escritorio.
+# para la tablet, la deja arrancando con Windows y crea los accesos directos dentro de C:\BotoneraDeck.
 $ErrorActionPreference = 'Stop'
 $src = Join-Path $PSScriptRoot 'BotoneraDeck'
 $dst = 'C:\BotoneraDeck'
@@ -16,8 +16,11 @@ try {
   New-Item -ItemType Directory -Force -Path $dst | Out-Null
   $teniaBotones = Test-Path (Join-Path $dst 'botones.json')
   Copy-Item (Join-Path $src '*') $dst -Recurse -Force -Exclude 'botones.json'
-  if ($teniaBotones) { Write-Host '   (ya tenias botones.json: lo dejo como estaba, con tus cambios)' }
-  else { Copy-Item (Join-Path $src 'botones.json') $dst }
+  if ($teniaBotones) {
+    Copy-Item (Join-Path $dst 'botones.json') (Join-Path $dst 'botones_anterior.json') -Force
+    Write-Host '   (tu botones.json anterior quedo guardado como botones_anterior.json)'
+  }
+  Copy-Item (Join-Path $src 'botones.json') $dst -Force
   Copy-Item (Join-Path $PSScriptRoot 'asignar_teclas_AC.ps1') $dst -Force
   Copy-Item (Join-Path $PSScriptRoot 'LEEME - Como instalar y configurar.txt') $dst -Force
 
@@ -43,15 +46,21 @@ try {
   $l = $sh.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Startup')) 'Botonera.lnk'))
   $l.TargetPath = $exe; $l.WorkingDirectory = $dst; $l.Save()
 
-  Paso 'Creando accesos directos en el Escritorio ...'
-  $desk = [Environment]::GetFolderPath('Desktop')
-  $a = $sh.CreateShortcut((Join-Path $desk 'Botonera - Editar botones.lnk'))
+  Paso 'Creando los accesos en la carpeta C:\BotoneraDeck (nada en el Escritorio) ...'
+  # versiones viejas los ponian en el Escritorio: se borran
+  Get-ChildItem ([Environment]::GetFolderPath('Desktop')) -Filter 'Botonera - *.lnk' -ErrorAction SilentlyContinue | Remove-Item -Force
+  Remove-Item (Join-Path $dst 'Botonera - Editar botones.lnk') -ErrorAction SilentlyContinue
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - EDITOR de botones.url'))
+  $a.TargetPath = 'http://localhost:8790/editor.html'; $a.Save()
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - botones.json (avanzado).lnk'))
   $a.TargetPath = 'notepad.exe'; $a.Arguments = '"' + (Join-Path $dst 'botones.json') + '"'; $a.Save()
-  $a = $sh.CreateShortcut((Join-Path $desk 'Botonera - Asignar teclas en AC.lnk'))
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - Carpeta de iconos.lnk'))
+  $a.TargetPath = Join-Path $dst 'web\icons'; $a.Save()
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - Asignar teclas en AC.lnk'))
   $a.TargetPath = 'powershell.exe'; $a.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $dst 'asignar_teclas_AC.ps1') + '"'; $a.Save()
-  $a = $sh.CreateShortcut((Join-Path $desk 'Botonera - Reiniciar.lnk'))
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - Reiniciar.lnk'))
   $a.TargetPath = Join-Path $dst 'reiniciar.bat'; $a.WorkingDirectory = $dst; $a.Save()
-  $a = $sh.CreateShortcut((Join-Path $desk 'Botonera - Guia.lnk'))
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - Guia.lnk'))
   $a.TargetPath = Join-Path $dst 'LEEME - Como instalar y configurar.txt'; $a.Save()
 
   Paso 'Buscando la tablet por USB ...'
@@ -72,7 +81,8 @@ try {
   Start-Process $exe -WorkingDirectory $dst
   Write-Host ''
   Write-Host 'INSTALACION TERMINADA.' -ForegroundColor Green
-  Write-Host 'Segui la guia (acceso "Botonera - Guia" en el Escritorio) para la tablet, las teclas de AC y Discord.'
+  Write-Host 'Todo quedo en la carpeta C:\BotoneraDeck (te la abro ahora). Segui "Botonera - Guia" para la tablet y las teclas de AC.'
+  Start-Process explorer.exe $dst
 } catch {
   Write-Host ''
   Write-Host ('ERROR: ' + $_.Exception.Message) -ForegroundColor Red

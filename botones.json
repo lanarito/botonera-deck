@@ -3,20 +3,21 @@
     {
       "name": "INICIO",
       "buttons": [
-        { "id": "discord",     "label": "DISCORD",     "icon": "icons/discord.png",     "type": "launch", "val": "%LOCALAPPDATA%\\Discord\\Update.exe", "args": "--processStart Discord.exe", "goto": "DISCORD" },
-        { "id": "simhub",      "label": "SIMHUB",      "icon": "icons/simhub.png",      "type": "launch", "val": "C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe" },
-        { "id": "ac",          "label": "ASSETTO",     "icon": "icons/assetto.png",     "type": "launch", "val": "%USERPROFILE%\\Desktop\\Content Manager.exe" },
-        { "id": "setuphub",    "label": "SETUPHUB",    "icon": "icons/setuphub.png",    "type": "launch", "val": "C:\\Program Files\\SetupHubPro\\app.exe" },
+        { "id": "discord", "label": "DISCORD", "icon": "icons/discord.png", "type": "launch", "val": "%LOCALAPPDATA%\\Discord\\Update.exe", "args": "--processStart Discord.exe", "goto": "DISCORD" },
+        { "id": "simhub", "label": "SIMHUB", "icon": "icons/simhub.png", "type": "launch", "val": "C:\\Program Files (x86)\\SimHub\\SimHubWPF.exe" },
+        { "id": "ac", "label": "ASSETTO", "icon": "icons/assetto.png", "type": "launch", "val": "%USERPROFILE%\\Desktop\\Content Manager.exe" },
+        { "id": "setuphub", "label": "SETUPHUB", "icon": "icons/setuphub.png", "type": "launch", "val": "C:\\Program Files\\SetupHubPro\\app.exe" },
         { "id": "antigravity", "label": "ANTIGRAVITY", "icon": "icons/antigravity.png", "type": "launch", "val": "%LOCALAPPDATA%\\Programs\\Antigravity IDE\\Antigravity IDE.exe" },
-        { "id": "youtube",     "label": "YOUTUBE",     "icon": "icons/youtube.png",     "type": "url",    "val": "https://www.youtube.com" },
-        { "id": "google",      "label": "GOOGLE",      "icon": "icons/google.png",      "type": "url",    "val": "https://www.google.com" },
-        { "id": "steam",       "label": "STEAM",       "icon": "icons/steam.png",       "type": "url",    "val": "steam://open/main" },
-        { "id": "gmail",       "label": "GMAIL",       "icon": "icons/gmail.png",       "type": "url",    "val": "https://mail.google.com" },
-        { "id": "whatsapp",    "label": "WHATSAPP",    "icon": "icons/whatsapp.png",    "type": "url",    "val": "https://web.whatsapp.com" },
-        { "id": "mic",  "label": "MIC",         "labelOn": "MIC MUTEADO", "toggle": true, "icon": "icons/em_mic.png",        "type": "key", "val": "ctrl+shift+alt+f9" },
-        { "id": "deaf", "label": "AURICULARES", "labelOn": "SIN AUDIO",   "toggle": true, "icon": "icons/em_headphones.png", "type": "key", "val": "ctrl+shift+alt+f10" },
-        { "id": "voldn", "label": "VOLUMEN −", "icon": "icons/em_volmin.png",  "type": "vol", "val": "down" },
-        { "id": "volup", "label": "VOLUMEN +", "icon": "icons/em_volplus.png", "type": "vol", "val": "up" }
+        { "id": "youtube", "label": "YOUTUBE", "icon": "icons/youtube.png", "type": "url", "val": "https://www.youtube.com" },
+        { "id": "google", "label": "GOOGLE", "icon": "icons/google.png", "type": "url", "val": "https://www.google.com" },
+        { "id": "steam", "label": "STEAM", "icon": "icons/steam.png", "type": "url", "val": "steam://open/main" },
+        { "id": "gmail", "label": "GMAIL", "icon": "icons/gmail.png", "type": "url", "val": "https://mail.google.com" },
+        { "id": "whatsapp", "label": "WHATSAPP", "icon": "icons/whatsapp.png", "type": "url", "val": "https://web.whatsapp.com" },
+        { "id": "mic", "label": "MIC", "labelOn": "MIC MUTEADO", "toggle": true, "icon": "icons/em_mic.png", "type": "key", "val": "ctrl+shift+alt+f9" },
+        { "id": "deaf", "label": "AURICULARES", "labelOn": "SIN AUDIO", "toggle": true, "icon": "icons/em_headphones.png", "type": "vol", "val": "mute" },
+        { "id": "voldn", "label": "VOLUMEN −", "icon": "icons/em_volmin.png", "type": "vol", "val": "down" },
+        { "id": "volup", "label": "VOLUMEN +", "icon": "icons/em_volplus.png", "type": "vol", "val": "up" },
+        { "id": "volante", "label": "MOZA", "icon": "icons/app_moza.png", "type": "launch", "val": "C:\\Program Files (x86)\\MOZA Pit House\\bin\\MOZA Pit House.exe" }
       ]
     },
     {
@@ -25,60 +26,60 @@
       "buttons": [
         { "id": "dc_volver", "label": "INICIO", "icon": "icons/em_back.png", "type": "page", "val": "INICIO" },
         { "id": "dc_setuphub", "label": "SETUPHUB", "icon": "icons/dc_1564817157894709419.png", "type": "url", "val": "discord://-/channels/1564817157894709419" },
-        { "id": "dc_acvra",    "label": "A.C.V.R.A.", "icon": "icons/dc_701613255876935710.png", "type": "url", "val": "discord://-/channels/701613255876935710" },
-        { "id": "dc_apvs",     "label": "APVS",     "icon": "icons/dc_683379228665839618.png",  "type": "url", "val": "discord://-/channels/683379228665839618" },
-        { "id": "dc_dpdl",     "label": "DPDL",     "icon": "icons/dc_293526880966148096.png",  "type": "url", "val": "discord://-/channels/293526880966148096" },
-        { "id": "dc_lovely",   "label": "LOVELY",   "icon": "icons/dc_830070781328752651.png",  "type": "url", "val": "discord://-/channels/830070781328752651" },
-        { "id": "dc_cavalli",  "label": "CAVALLI", "icon": "icons/dc_1201912119772053584.png", "type": "url", "val": "discord://-/channels/1201912119772053584" },
-        { "id": "dc_srw",      "label": "SRW",      "icon": "icons/dc_597803720717107200.png",  "type": "url", "val": "discord://-/channels/597803720717107200" },
-        { "id": "dc_aimax",    "label": "AIMAX",    "icon": "icons/dc_1233217808226058240.png", "type": "url", "val": "discord://-/channels/1233217808226058240" },
-        { "id": "dc_ama",      "label": "AMA",      "icon": "icons/dc_1292849379576905790.png", "type": "url", "val": "discord://-/channels/1292849379576905790" }
+        { "id": "dc_acvra", "label": "A.C.V.R.A.", "icon": "icons/dc_701613255876935710.png", "type": "url", "val": "discord://-/channels/701613255876935710" },
+        { "id": "dc_apvs", "label": "APVS", "icon": "icons/dc_683379228665839618.png", "type": "url", "val": "discord://-/channels/683379228665839618" },
+        { "id": "dc_dpdl", "label": "DPDL", "icon": "icons/dc_293526880966148096.png", "type": "url", "val": "discord://-/channels/293526880966148096" },
+        { "id": "dc_lovely", "label": "LOVELY", "icon": "icons/dc_830070781328752651.png", "type": "url", "val": "discord://-/channels/830070781328752651" },
+        { "id": "dc_cavalli", "label": "CAVALLI", "icon": "icons/dc_1201912119772053584.png", "type": "url", "val": "discord://-/channels/1201912119772053584" },
+        { "id": "dc_srw", "label": "SRW", "icon": "icons/dc_597803720717107200.png", "type": "url", "val": "discord://-/channels/597803720717107200" },
+        { "id": "dc_aimax", "label": "AIMAX", "icon": "icons/dc_1233217808226058240.png", "type": "url", "val": "discord://-/channels/1233217808226058240" },
+        { "id": "dc_ama", "label": "AMA", "icon": "icons/dc_1292849379576905790.png", "type": "url", "val": "discord://-/channels/1292849379576905790" }
       ]
     },
     {
       "name": "CARRERA",
       "buttons": [
-        { "id": "ac_camara",    "label": "CÁMARA",   "icon": "icons/em_camera.png",   "type": "key",  "val": "f18" },
-        { "id": "ac_mirar_izq", "label": "MIRAR ←", "icon": "icons/em_lookleft.png", "type": "key",  "val": "q" },
-        { "id": "ac_mirar_der", "label": "MIRAR →", "icon": "icons/em_lookright.png","type": "key",  "val": "e" },
-        { "id": "ac_fov_mas",   "label": "FOV +",    "icon": "icons/em_fovplus.png",  "type": "key",  "val": "num+" },
-        { "id": "ac_fov_menos", "label": "FOV −",    "icon": "icons/em_fovminus.png", "type": "key",  "val": "num-" },
-        { "id": "ac_cam_sube",  "label": "CÁM ↑",   "icon": "icons/em_camup.png",    "type": "key",  "val": "num8" },
-        { "id": "ac_cam_baja",  "label": "CÁM ↓",   "icon": "icons/em_camdown.png",  "type": "key",  "val": "num2" },
-        { "id": "ac_mirar_atras","label": "MIRAR ATRÁS","icon": "icons/em_lookback.png", "type": "key", "val": "w" },
-        { "id": "ac_asiento_ade","label": "ADELANTE", "icon": "icons/em_seatfwd.png",  "type": "key",  "val": "f14" },
-        { "id": "ac_asiento_atr","label": "ATRÁS",    "icon": "icons/em_seatback.png", "type": "key",  "val": "f15" },
-        { "id": "ac_vista_reset","label": "VISTA ORIG.","icon": "icons/em_seatreset.png","type": "key", "val": "f16" },
-        { "id": "go_pits",      "label": "PITS",     "icon": "icons/em_flag.png",     "type": "key",  "val": "f24", "goto": "PITS" }
+        { "id": "ac_camara", "label": "CÁMARA", "icon": "icons/em_camera.png", "type": "key", "val": "f18" },
+        { "id": "ac_mirar_izq", "label": "MIRAR ←", "icon": "icons/em_lookleft.png", "type": "key", "val": "q" },
+        { "id": "ac_mirar_der", "label": "MIRAR →", "icon": "icons/em_lookright.png", "type": "key", "val": "e" },
+        { "id": "ac_fov_mas", "label": "FOV +", "icon": "icons/em_fovplus.png", "type": "key", "val": "num+" },
+        { "id": "ac_fov_menos", "label": "FOV −", "icon": "icons/em_fovminus.png", "type": "key", "val": "num-" },
+        { "id": "ac_cam_sube", "label": "CÁM ↑", "icon": "icons/em_camup.png", "type": "key", "val": "num8" },
+        { "id": "ac_cam_baja", "label": "CÁM ↓", "icon": "icons/em_camdown.png", "type": "key", "val": "num2" },
+        { "id": "ac_mirar_atras", "label": "MIRAR ATRÁS", "icon": "icons/em_lookback.png", "type": "key", "val": "w" },
+        { "id": "ac_asiento_ade", "label": "ADELANTE", "icon": "icons/em_seatfwd.png", "type": "key", "val": "f14" },
+        { "id": "ac_asiento_atr", "label": "ATRÁS", "icon": "icons/em_seatback.png", "type": "key", "val": "f15" },
+        { "id": "ac_vista_reset", "label": "VISTA ORIG.", "icon": "icons/em_seatreset.png", "type": "key", "val": "f16" },
+        { "id": "go_pits", "label": "PITS", "icon": "icons/em_flag.png", "type": "key", "val": "f24", "goto": "PITS" }
       ]
     },
     {
       "name": "PANTALLA",
       "buttons": [
-        { "id": "ac_nombres",   "label": "NOMBRES",     "icon": "icons/em_names.png",      "type": "key", "val": "l" },
-        { "id": "ac_apps",      "label": "APPS / HUD",  "icon": "icons/em_apps.png",       "type": "key", "val": "h" },
-        { "id": "ac_ocultar",   "label": "OCULTAR TODO","icon": "icons/em_hideall.png",    "type": "key", "val": "ctrl+shift+alt+h" },
-        { "id": "ac_escritorio","label": "CAMBIAR APPS","icon": "icons/em_desktops.png",   "type": "key", "val": "f13" },
-        { "id": "ac_espejo",    "label": "ESPEJO",      "icon": "icons/em_mirror.png",     "type": "key", "val": "f11" },
-        { "id": "ac_linea",     "label": "LÍNEA IDEAL", "icon": "icons/em_idealline.png",  "type": "key", "val": "i" },
-        { "id": "ac_danos",     "label": "DAÑOS",       "icon": "icons/em_damage.png",     "type": "key", "val": "j" },
-        { "id": "ac_captura",   "label": "CAPTURA",     "icon": "icons/em_screenshot.png", "type": "key", "val": "f8" },
-        { "id": "ac_clip",      "label": "GUARDAR CLIP","icon": "icons/em_clip.png",       "type": "key", "val": "ctrl+shift+s" },
-        { "id": "ac_pausa",     "label": "PAUSA",       "icon": "icons/em_pause.png",      "type": "key", "val": "f19" },
-        { "id": "ac_setup",     "label": "SETUP AUTO",  "icon": "icons/em_setup.png",      "type": "key", "val": "f17" }
+        { "id": "ac_nombres", "label": "NOMBRES", "icon": "icons/em_names.png", "type": "key", "val": "l" },
+        { "id": "ac_apps", "label": "APPS / HUD", "icon": "icons/em_apps.png", "type": "key", "val": "h" },
+        { "id": "ac_ocultar", "label": "OCULTAR TODO", "icon": "icons/em_hideall.png", "type": "key", "val": "ctrl+shift+alt+h" },
+        { "id": "ac_escritorio", "label": "CAMBIAR APPS", "icon": "icons/em_desktops.png", "type": "key", "val": "f13" },
+        { "id": "ac_espejo", "label": "ESPEJO", "icon": "icons/em_mirror.png", "type": "key", "val": "f11" },
+        { "id": "ac_linea", "label": "LÍNEA IDEAL", "icon": "icons/em_idealline.png", "type": "key", "val": "i" },
+        { "id": "ac_danos", "label": "DAÑOS", "icon": "icons/em_damage.png", "type": "key", "val": "j" },
+        { "id": "ac_captura", "label": "CAPTURA", "icon": "icons/em_screenshot.png", "type": "key", "val": "f8" },
+        { "id": "ac_clip", "label": "GUARDAR CLIP", "icon": "icons/em_clip.png", "type": "key", "val": "ctrl+shift+s" },
+        { "id": "ac_pausa", "label": "PAUSA", "icon": "icons/em_pause.png", "type": "key", "val": "f19" },
+        { "id": "ac_setup", "label": "SETUP AUTO", "icon": "icons/em_setup.png", "type": "key", "val": "f17" }
       ]
     },
     {
       "name": "PITS",
       "hidden": true,
       "buttons": [
-        { "id": "pit_volver", "label": "CARRERA",   "icon": "icons/em_back.png",  "type": "page", "val": "CARRERA" },
-        { "id": "pit_ok",     "label": "OK",        "icon": "icons/em_check.png", "type": "key",  "val": "enter" },
-        { "id": "pit_esc",    "label": "SALIR",     "icon": "icons/em_cross.png", "type": "key",  "val": "esc" },
-        { "id": "pit_up",     "label": "", "dpad": true, "icon": "icons/em_up.png",    "type": "key", "val": "up" },
-        { "id": "pit_left",   "label": "", "dpad": true, "icon": "icons/em_left.png",  "type": "key", "val": "left" },
-        { "id": "pit_right",  "label": "", "dpad": true, "icon": "icons/em_right.png", "type": "key", "val": "right" },
-        { "id": "pit_down",   "label": "", "dpad": true, "icon": "icons/em_down.png",  "type": "key", "val": "down" }
+        { "id": "pit_volver", "label": "CARRERA", "icon": "icons/em_back.png", "type": "page", "val": "CARRERA" },
+        { "id": "pit_ok", "label": "OK", "icon": "icons/em_check.png", "type": "key", "val": "enter" },
+        { "id": "pit_esc", "label": "SALIR", "icon": "icons/em_cross.png", "type": "key", "val": "esc" },
+        { "id": "pit_up", "label": "", "dpad": true, "icon": "icons/em_up.png", "type": "key", "val": "up" },
+        { "id": "pit_left", "label": "", "dpad": true, "icon": "icons/em_left.png", "type": "key", "val": "left" },
+        { "id": "pit_right", "label": "", "dpad": true, "icon": "icons/em_right.png", "type": "key", "val": "right" },
+        { "id": "pit_down", "label": "", "dpad": true, "icon": "icons/em_down.png", "type": "key", "val": "down" }
       ]
     }
   ]

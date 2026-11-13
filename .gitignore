@@ -6,3 +6,6 @@ tablet/heimdall.zip
 tablet/apk/
 # estado en vivo
 estado_botonera.txt
+botones_backup.json
+botones_anterior.json
+discord_detectado.txt

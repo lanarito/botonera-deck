@@ -38,7 +38,7 @@ Botonera táctil estilo **Stream Deck** en una **tablet Samsung Galaxy Tab 2 (GT
 | setuphub | SETUPHUB | launch (ruta pendiente) |
 | antigravity | ANTIGRAVITY | launch `%LOCALAPPDATA%\Programs\Antigravity\Antigravity.exe` |
 | mic | MIC | key `ctrl+shift+alt+f9` (toggle) |
-| deaf | AURICULARES | key `ctrl+shift+alt+f10` (toggle) |
+| deaf | AURICULARES | vol `mute` = silencia TODO Windows (toggle con estado real) |
 | voldn | VOLUMEN − | vol down |
 | volup | VOLUMEN + | vol up |
 
@@ -268,3 +268,29 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - `Botonera.cs`: si la tablet NO tiene Webview Kiosk, abre el navegador por defecto.
 - **Probado de punta a punta en esta PC** (instaló, conectó la tablet y mostró la botonera genérica); después se restauró lo del usuario.
   Quedó la carpeta de prueba `C:\BotoneraDeck` (borrar a mano; la seguridad no deja borrarla desde acá).
+
+## 17. [2026-11-12] INICIO: AURICULARES y VOLUMEN = volumen GENERAL de Windows ✅
+- AURICULARES ya no es atajo de Discord: es `vol mute` (tecla multimedia). La luz muestra el mute REAL de Windows (Core Audio, se lee en `/state`).
+- VOL −/+: cada toque = 4% (2 pasos). Ya no pasan por el filtro anti-doble toque (antes se comía los toques rápidos).
+- Mismo cambio en `kit/botones.json` y en la config por defecto de `Botonera.cs`. MIC sigue siendo el atajo de Discord.
+
+## 18. [2026-11-12] KIT = botonera IDÉNTICA a la del simu ✅
+- Pedido del usuario: al amigo le aparecía otro orden y sin SETUPHUB (el kit tenía un `kit/botones.json` genérico). Se borró.
+- `armar_kit.ps1` copia el `botones.json` del repo + TODOS los íconos (incluye SetupHub, Antigravity, servidores dc_*).
+- `instalar.ps1` ahora REEMPLAZA botones.json (guarda el viejo como `botones_anterior.json`).
+- Ojo: rutas propias (ASSETTO = `%USERPROFILE%\Desktop\Content Manager.exe`, SETUPHUB = `C:\Program Files\SetupHubPro\app.exe`) tienen que existir igual en la PC del amigo.
+
+## 19. [2026-11-12] EDITOR en la PC + kit sin accesos en el Escritorio ✅
+- `http://localhost:8790/editor.html` (`web/editor.html`): copia de la botonera; tocar boton -> panel. Programas: DESPLEGABLE con los accesos del menu Inicio + Escritorio (`/editor/apps`), o `Buscar…` (ventana Abrir de Windows, `/editor/pickexe`). De .lnk/.url/.exe saca ruta+args, nombre y el ICONO grande (jumbo 256, recortado) a `web/icons/app_*.png`.
+- Teclas: desplegable de `web/atajos.json` (Assetto = las de asignar_teclas_AC; iRacing = SUGERIDAS ctrl+shift+f1..f12, se asignan en iRacing tocando el boton; Discord; Windows) + Grabar.
+- Iconos: elegir de la lista o `Imagen de la PC…` (`/editor/pickimg`: copia, pasa a PNG <=256).
+- GUARDAR -> POST `/editor/save` (valida, backup `botones_backup.json`). `/state` trae `_cfg` (fecha de botones.json): la tablet se RECARGA SOLA en la misma pagina. Vale tambien para editarlo a mano.
+- Kit: accesos ya NO en el Escritorio, todos dentro de `C:\BotoneraDeck` (y borra los viejos del Escritorio); guia con seccion de ICONOS paso a paso y del EDITOR.
+
+## 20. [2026-11-12] DISCORD y VOLANTE automáticos por persona ✅
+- Discord 1.0.9267 ya NO deja logos en la caché. Servidores: Local Storage (`selectedChannelIds` / `mostRecentSelectedTextChannelIds`) + `logs\renderer_js*` (`Transitioning to /channels/<id>/`) + caché (por si acaso).
+- Nombre: se abre `discord://-/channels/<id>` y se lee el título (`#canal | Servidor - Discord`); si no cambia, no es miembro → se descarta. Nombres cortos: lo de antes de ` - `, máx 20 letras cortando entre palabras.
+- Logo: original de la caché si hay hash; si no, se RECORTA de la ventana (PrintWindow): la rayita blanca de la columna 0 marca el servidor abierto (alto L; logo en x=0.4L, LxL). Discord se agranda al 200% (5× Ctrl+OEM_PLUS) para que salga nítido y después vuelve (5× Ctrl+OEM_MINUS), servidor original y minimizado. Sin rayita → ícono con iniciales.
+- Corre solo al arrancar (15 s) si botones.json no tiene servidores y no existe `discord_detectado.txt`; en el editor: `Actualizar mis servidores de Discord` (`/editor/discord`). El kit sale SIN servidores ni íconos dc_*.
+- VOLANTE: botón con `"auto": "volante"`; al arrancar se completa con el primer programa de volante instalado de `web/atajos.json > programas` (MOZA, G HUB, Simagic, Fanatec, Thrustmaster). Editor: desplegable Simracing en Abrir un programa (`/editor/programa?n=`).
+- Probado: en esta PC detectó los 9 servidores con logos; simulación de kit limpio de punta a punta OK. En el botones.json del usuario quedaron SUS nombres/logos de siempre (se restauró tras la prueba).

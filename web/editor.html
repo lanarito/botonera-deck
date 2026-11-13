@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Botonera - Editor</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: #000; color: #d7dbe0; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 14px; padding: 12px 20px; background: #0b0c0f; border-bottom: 1px solid #1c1f25; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: 1.5px; color: #fff; }
+  header .hint { font-size: 13px; color: #7d858f; flex: 1; }
+  #msg { font-size: 14px; font-weight: 600; }
+  #msg.ok { color: #3c6; } #msg.err { color: #f55; } #msg.warn { color: #fb3; }
+  button { font: inherit; font-size: 14px; color: #e6e9ee; background: #1c1f26; border: 1px solid #2c313a; border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button:hover { border-color: #5865F2; }
+  button.main { background: #5865F2; border-color: #5865F2; color: #fff; font-weight: 700; padding: 9px 22px; }
+  button.main:disabled { background: #23262d; border-color: #2c313a; color: #6b727c; cursor: default; }
+  button.danger:hover { border-color: #e44; color: #f88; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #left { flex: 1; overflow: auto; padding: 0 10px 30px; }
+  #tabs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; padding: 14px 0 6px; }
+  .tab { padding: 7px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d; cursor: pointer;
+    background: #07080a; border: 1px solid #1c1f25; }
+  .tab.hid { font-style: italic; opacity: .75; }
+  .tab.active { color: #fff; border-color: #5865F2; box-shadow: 0 0 14px -3px #5865F2; }
+  #pagebar { display: flex; gap: 10px; justify-content: center; align-items: center; font-size: 13px; color: #8a929d; padding: 4px 0 14px; flex-wrap: wrap; }
+  #pagebar input[type=text] { width: 140px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, 112px); gap: 22px; justify-content: center; padding: 10px; }
+  /* tecla (misma idea que la tablet, mas liviana) */
+  .key { --c: #5865F2; width: 112px; height: 112px; position: relative; cursor: pointer; border-radius: 24px;
+    background: #040506; box-shadow: inset 0 8px 14px rgba(0,0,0,.95), 0 0 18px -2px var(--c), inset 0 0 16px 2px rgba(88,101,242,.5); }
+  .cap { position: absolute; top: 7px; left: 7px; right: 7px; bottom: 7px; border-radius: 19px;
+    background: linear-gradient(180deg, #3a3e45 0%, #24272c 55%, #15171a 100%); box-shadow: 0 8px 12px rgba(0,0,0,.75); }
+  .face { position: absolute; top: 2px; left: 4px; right: 4px; bottom: 12px; border-radius: 15px;
+    background: radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.13) 0%, rgba(255,255,255,0) 55%), radial-gradient(ellipse at 50% 60%, #22252b 0%, #2a2e35 70%, #33373f 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  .face img, .face svg { width: 52%; height: 52%; object-fit: contain; fill: var(--c); }
+  .lbl { margin-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #9aa1aa; text-align: center; padding: 0 4px; line-height: 1.15; }
+  .key.sel { outline: 3px solid #fff; outline-offset: 4px; }
+  .key.drag { opacity: .35; }
+  .key.over { outline: 3px dashed #5865F2; outline-offset: 4px; }
+  .key.add { box-shadow: inset 0 8px 14px rgba(0,0,0,.95); }
+  .key.add .face { background: #15171b; }
+  .key.add svg { fill: #59606b; }
+  .key .badge { position: absolute; top: -8px; right: -8px; background: #2c313a; color: #cfd4da; font-size: 10px; padding: 2px 6px; border-radius: 8px; }
+  /* panel derecho */
+  #panel { width: 430px; background: #0b0c0f; border-left: 1px solid #1c1f25; overflow: auto; padding: 18px 20px 30px; }
+  #panel h2 { margin: 0 0 14px; font-size: 16px; color: #fff; letter-spacing: 1px; }
+  .empty { color: #6b727c; font-size: 14px; line-height: 1.6; }
+  label.f { display: block; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #8a929d; margin: 14px 0 5px; text-transform: uppercase; }
+  input[type=text], select { width: 100%; font: inherit; font-size: 14px; color: #e6e9ee; background: #15171b; border: 1px solid #2c313a; border-radius: 7px; padding: 7px 9px; }
+  input[type=text]:focus, select:focus { outline: none; border-color: #5865F2; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: none; }
+  .row > .grow { flex: 1; min-width: 0; }
+  .small { font-size: 12px; color: #6b727c; margin-top: 5px; line-height: 1.4; }
+  #icoPrev { width: 72px; height: 72px; border-radius: 14px; background: #24272c; display: flex; align-items: center; justify-content: center; flex: none; }
+  #icoPrev img, #icoPrev svg { width: 54px; height: 54px; object-fit: contain; fill: #5865F2; }
+  #gallery { display: none; grid-template-columns: repeat(auto-fill, 52px); gap: 6px; max-height: 260px; overflow: auto; margin-top: 8px;
+    background: #15171b; border: 1px solid #2c313a; border-radius: 8px; padding: 8px; }
+  #gallery.open { display: grid; }
+  #gallery div { width: 52px; height: 52px; border-radius: 8px; background: #24272c; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #gallery div:hover { outline: 2px solid #5865F2; }
+  #gallery img { width: 38px; height: 38px; object-fit: contain; }
+  details { margin-top: 18px; border-top: 1px solid #1c1f25; padding-top: 10px; }
+  summary { cursor: pointer; color: #8a929d; font-size: 13px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; padding-top: 14px; border-top: 1px solid #1c1f25; }
+  .rec { background: #5a1d1d !important; border-color: #e44 !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>EDITOR DE LA BOTONERA</h1>
+  <div class="hint">Toca un boton para cambiarlo, arrastralo para moverlo. Al GUARDAR, la tablet se actualiza sola.</div>
+  <span id="msg"></span>
+  <button id="dcScan" title="Busca tus servidores de Discord y arma la pagina DISCORD">Actualizar mis servidores de Discord</button>
+  <button class="main" id="save" disabled>GUARDAR</button>
+</header>
+<main>
+  <div id="left">
+    <div id="tabs"></div>
+    <div id="pagebar"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div id="panel"></div>
+</main>
+<script>
+var cfg = null, cur = 0, sel = -1, dirty = false, apps = [], icons = [];
+var TYPES = [['launch', 'Abrir un programa'], ['url', 'Abrir una pagina web / enlace'], ['key', 'Apretar teclas (Assetto, atajos)'], ['vol', 'Volumen de Windows'], ['page', 'Ir a otra pagina de la botonera']];
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+function get(url, cb) { fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(cb).catch(function (e) { msg('No hay conexion con Botonera.exe (' + e.message + ')', 'err'); }); }
+function msg(t, k) { var m = $('msg'); m.textContent = t || ''; m.className = k || ''; }
+function setDirty() { dirty = true; $('save').disabled = false; msg('Cambios sin guardar', 'warn'); }
+function page() { return cfg.pages[cur]; }
+function btns() { var p = page(); if (!p.buttons) p.buttons = []; return p.buttons; }
+function iconHtml(icon) {
+  if (!icon) return '';
+  if (icon.indexOf('svg:') === 0) return '<svg viewBox="0 0 24 24"><path d="' + esc(icon.substring(4)) + '"/></svg>';
+  return '<img src="' + esc(icon) + '?' + Date.now() % 100000 + '" alt="">';
+}
+
+// ---------- vista ----------
+function render() {
+  var t = '';
+  cfg.pages.forEach(function (p, i) { t += '<div class="tab' + (p.hidden ? ' hid' : '') + (i === cur ? ' active' : '') + '" data-i="' + i + '">' + esc(p.name || ('P' + (i + 1))) + '</div>'; });
+  t += '<button id="addPage" title="Agregar una pagina">+ Pagina</button>';
+  $('tabs').innerHTML = t;
+  [].forEach.call(document.querySelectorAll('.tab'), function (el) { el.onclick = function () { cur = +el.getAttribute('data-i'); sel = -1; render(); }; });
+  $('addPage').onclick = function () {
+    var n = 'PAGINA ' + (cfg.pages.length + 1);
+    cfg.pages.push({ name: n, buttons: [] }); cur = cfg.pages.length - 1; sel = -1; setDirty(); render();
+  };
+  var p = page();
+  $('pagebar').innerHTML = 'Nombre de la pagina: <input type="text" id="pname" value="' + esc(p.name) + '">' +
+    '<label><input type="checkbox" id="phid"' + (p.hidden ? ' checked' : '') + '> oculta (sin pestaña; se entra con un boton)</label>' +
+    (cfg.pages.length > 1 ? '<button class="danger" id="pdel">Borrar pagina</button>' : '');
+  $('pname').oninput = function () { var old = p.name; p.name = this.value; renameRefs(old, p.name); setDirty(); renderTabsOnly(); };
+  $('phid').onchange = function () { if (this.checked) p.hidden = true; else delete p.hidden; setDirty(); render(); };
+  if ($('pdel')) $('pdel').onclick = function () {
+    if (!confirm('¿Borrar la pagina "' + p.name + '" con todos sus botones?')) return;
+    cfg.pages.splice(cur, 1); cur = 0; sel = -1; setDirty(); render();
+  };
+  renderGrid(); renderPanel();
+}
+function renderTabsOnly() { var ts = document.querySelectorAll('.tab'); cfg.pages.forEach(function (p, i) { if (ts[i]) ts[i].textContent = p.name || ('P' + (i + 1)); }); }
+function renameRefs(oldN, newN) {   // si se renombra una pagina, los botones que iban a ella siguen andando
+  cfg.pages.forEach(function (p) { (p.buttons || []).forEach(function (b) { if (b.type === 'page' && b.val === oldN) b.val = newN; if (b.goto === oldN) b.goto = newN; }); });
+}
+
+var dragFrom = -1;
+function renderGrid() {
+  var g = $('grid'), h = '';
+  btns().forEach(function (b, i) {
+    h += '<div class="key' + (i === sel ? ' sel' : '') + '" draggable="true" data-i="' + i + '"><div class="cap"><div class="face">' + iconHtml(b.icon) +
+      '<div class="lbl">' + esc(b.label) + '</div></div></div>' + (b.dpad ? '<span class="badge">cruz</span>' : '') + '</div>';
+  });
+  h += '<div class="key add" id="addBtn" title="Agregar boton"><div class="cap"><div class="face"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><div class="lbl">AGREGAR</div></div></div></div>';
+  g.innerHTML = h;
+  [].forEach.call(g.querySelectorAll('.key[data-i]'), function (k) {
+    var i = +k.getAttribute('data-i');
+    k.onclick = function () { sel = i; renderGrid(); renderPanel(); };
+    k.ondragstart = function (e) { dragFrom = i; k.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text', '' + i); };
+    k.ondragend = function () { k.classList.remove('drag'); };
+    k.ondragover = function (e) { e.preventDefault(); k.classList.add('over'); };
+    k.ondragleave = function () { k.classList.remove('over'); };
+    k.ondrop = function (e) { e.preventDefault(); k.classList.remove('over'); moveTo(dragFrom, i); };
+  });
+  $('addBtn').onclick = addButton;
+}
+function moveTo(from, to) {
+  if (from < 0 || from === to) return;
+  var L = btns(), b = L.splice(from, 1)[0]; L.splice(to, 0, b);
+  if (sel === from) sel = to; setDirty(); renderGrid(); renderPanel();
+}
+function uniqueId(base) {
+  base = (base || 'boton').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'boton';
+  var all = {}; cfg.pages.forEach(function (p) { (p.buttons || []).forEach(function (b) { all[b.id] = 1; }); });
+  var id = base, n = 2; while (all[id]) id = base + '_' + (n++); return id;
+}
+function addButton() {
+  var b = { id: uniqueId('nuevo'), label: 'NUEVO', icon: '', type: 'launch', val: '' };
+  btns().push(b); sel = btns().length - 1; setDirty(); renderGrid(); renderPanel();
+  setTimeout(function () { var s = $('appSel'); if (s) s.focus(); }, 50);
+}
+
+// ---------- panel de edicion ----------
+function renderPanel() {
+  var P = $('panel');
+  var b = btns()[sel];
+  if (!b) {
+    P.innerHTML = '<h2>Elegi un boton</h2><div class="empty">Toca un boton de la izquierda para cambiarlo, o el <b>+ AGREGAR</b> para crear uno.<br><br>' +
+      'Para cambiar el orden, <b>arrastralo</b> a otro lugar.<br><br>Cuando termines, apreta <b>GUARDAR</b> (arriba): la tablet se actualiza sola en un par de segundos.</div>';
+    return;
+  }
+  var h = '<h2>Boton: ' + esc(b.label || b.id) + '</h2>';
+  h += '<label class="f">Texto del boton</label><input type="text" id="fLabel" value="' + esc(b.label) + '">';
+  h += '<label class="f">Que hace</label><select id="fType">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (b.type === t[0] ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select>';
+  h += '<div id="typeBox"></div>';
+  h += '<label class="f">Icono</label><div class="row"><div id="icoPrev">' + iconHtml(b.icon) + '</div><div class="grow">' +
+       '<div class="row" style="flex-wrap:wrap"><button id="icoList">Elegir de la lista ▾</button><button id="icoPc">Imagen de la PC…</button>' +
+       (b.icon ? '<button id="icoDel" class="danger">Sin icono</button>' : '') + '</div>' +
+       '<div class="small">Los programas traen su icono solo al elegirlos arriba.</div></div></div><div id="gallery"></div>';
+  h += '<details><summary>Avanzado</summary>' +
+       '<label class="f">Nombre interno (id)</label><input type="text" id="fId" value="' + esc(b.id) + '">' +
+       '<label class="f"><input type="checkbox" id="fTog"' + (b.toggle ? ' checked' : '') + '> Queda prendido/apagado (con luz)</label>' +
+       '<div id="togBox"' + (b.toggle ? '' : ' style="display:none"') + '><label class="f">Texto cuando esta prendido</label><input type="text" id="fOn" value="' + esc(b.labelOn || '') + '"></div>' +
+       '<label class="f">Ademas, al tocarlo ir a la pagina</label><select id="fGoto"><option value="">(no)</option>' + pageOptions(b.goto) + '</select></details>';
+  h += '<div class="actions"><button id="bL">◀ Mover</button><button id="bR">Mover ▶</button><button id="bDup">Duplicar</button><button id="bTest">▶ Probar</button><button id="bDel" class="danger">Borrar</button></div>';
+  P.innerHTML = h;
+
+  $('fLabel').oninput = function () { b.label = this.value.toUpperCase(); this.value = b.label; setDirty(); refreshKey(); };
+  $('fType').onchange = function () {
+    b.type = this.value; delete b.args;
+    b.val = b.type === 'vol' ? 'up' : (b.type === 'page' ? (cfg.pages[0] ? cfg.pages[0].name : '') : '');
+    setDirty(); renderType(b); refreshKey();
+  };
+  renderType(b);
+  $('icoList').onclick = function () { toggleGallery(b); };
+  $('icoPc').onclick = function () {
+    msg('Elegi la imagen en la ventana de Windows…', 'warn');
+    get('/editor/pickimg', function (r) { if (r.cancel) { msg(dirty ? 'Cambios sin guardar' : '', dirty ? 'warn' : ''); return; } if (r.error) return msg(r.error, 'err'); b.icon = r.icon; loadIcons(); setDirty(); renderPanel(); refreshKey(); });
+  };
+  if ($('icoDel')) $('icoDel').onclick = function () { b.icon = ''; setDirty(); renderPanel(); refreshKey(); };
+  $('fId').onchange = function () { var v = this.value.trim(); if (v && v !== b.id) { b.id = uniqueId(v); this.value = b.id; setDirty(); } };
+  $('fTog').onchange = function () { if (this.checked) { b.toggle = true; if (!b.labelOn) b.labelOn = b.label; } else { delete b.toggle; delete b.labelOn; } setDirty(); renderPanel(); };
+  $('fOn').oninput = function () { b.labelOn = this.value.toUpperCase(); this.value = b.labelOn; setDirty(); };
+  $('fGoto').onchange = function () { if (this.value) b.goto = this.value; else delete b.goto; setDirty(); };
+  $('bL').onclick = function () { if (sel > 0) moveTo(sel, sel - 1); };
+  $('bR').onclick = function () { if (sel < btns().length - 1) moveTo(sel, sel + 1); };
+  $('bDup').onclick = function () { var c = JSON.parse(JSON.stringify(b)); c.id = uniqueId(b.id); btns().splice(sel + 1, 0, c); sel++; setDirty(); renderGrid(); renderPanel(); };
+  $('bDel').onclick = function () { if (!confirm('¿Borrar el boton "' + b.label + '"?')) return; btns().splice(sel, 1); sel = -1; setDirty(); renderGrid(); renderPanel(); };
+  $('bTest').onclick = function () {
+    if (dirty) return msg('Guarda primero para probar', 'warn');
+    if (b.type === 'page') return msg('Los botones de pagina se prueban en la tablet', 'warn');
+    get('/press?id=' + encodeURIComponent(b.id), function () { msg('Probado: ' + b.label, 'ok'); });
+  };
+}
+function pageOptions(v) { return cfg.pages.map(function (p) { return '<option' + (p.name === v ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join(''); }
+function refreshKey() { var k = document.querySelector('.key[data-i="' + sel + '"]'), b = btns()[sel]; if (!k || !b) return;
+  k.querySelector('.face').innerHTML = iconHtml(b.icon) + '<div class="lbl">' + esc(b.label) + '</div>'; }
+
+function renderType(b) {
+  var T = $('typeBox'), h = '';
+  if (b.type === 'launch') {
+    h += '<label class="f">Simracing: volante y programas</label><select id="progSel"><option value="">— MOZA, Logitech, Simagic, SimHub… —</option>' +
+         (atajos.programas || []).map(function (p, i) { return '<option value="' + i + '">' + esc(p.nombre) + '</option>'; }).join('') + '</select>';
+    h += '<label class="f">O cualquier programa</label>';
+    h += '<input type="text" id="appFilter" placeholder="Escribi para buscar en la lista (ej. discord)">';
+    h += '<div class="row" style="margin-top:6px"><select id="appSel" class="grow">' + appOptions('') + '</select><button id="appPick" title="Buscar el .exe a mano">Buscar…</button></div>';
+    h += '<label class="f">Ruta (se completa sola)</label><input type="text" id="fVal" value="' + esc(b.val) + '">';
+    h += '<label class="f">Argumentos (casi nunca hace falta)</label><input type="text" id="fArgs" value="' + esc(b.args || '') + '">';
+    h += '<div class="small">La lista son los programas del menu Inicio y del Escritorio. Si no esta, usa <b>Buscar…</b>.</div>';
+  } else if (b.type === 'url') {
+    h += '<label class="f">Direccion</label><input type="text" id="fVal" value="' + esc(b.val) + '" placeholder="https://www.twitch.tv">';
+    h += '<div class="small">Tambien sirven enlaces de programas: steam://rungameid/244210 , discord://… Un acceso a juego de Steam del Escritorio se puede elegir con "Abrir un programa".</div>';
+  } else if (b.type === 'key') {
+    h += '<label class="f">Accion de un juego / programa</label><select id="atajoSel">' + atajoOptions(b.val) + '</select><div class="small" id="atajoNota"></div>';
+    h += '<label class="f">Teclas (o escribilas / grabalas)</label><div class="row"><input type="text" id="fVal" class="grow" value="' + esc(b.val) + '" placeholder="ctrl+shift+s"><button id="rec">Grabar</button></div>';
+    h += '<div class="small">Apreta <b>Grabar</b> y despues la combinacion en el teclado. O escribila: ctrl, shift, alt, a-z, 0-9, f1-f24, num0-num9, num+, num-, up, down, left, right, enter, esc, space… (F13 a F24 no existen en el teclado: escribilas). Para Assetto, asigna la misma tecla en Content Manager.</div>';
+  } else if (b.type === 'vol') {
+    h += '<label class="f">Accion</label><select id="fVal">' + [['up', 'Subir volumen'], ['down', 'Bajar volumen'], ['mute', 'Silenciar / activar todo']].map(function (o) { return '<option value="' + o[0] + '"' + (b.val === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+  } else if (b.type === 'page') {
+    h += '<label class="f">Pagina</label><select id="fVal">' + pageOptions(b.val) + '</select>';
+  }
+  T.innerHTML = h;
+  var fv = $('fVal');
+  if (fv) { fv.oninput = fv.onchange = function () { b.val = this.value; setDirty(); }; }
+  if ($('fArgs')) $('fArgs').oninput = function () { if (this.value) b.args = this.value; else delete b.args; setDirty(); };
+  if ($('appFilter')) $('appFilter').oninput = function () { $('appSel').innerHTML = appOptions(this.value); };
+  if ($('appSel')) $('appSel').onchange = function () { if (this.value) useApp('/editor/app?path=' + encodeURIComponent(this.value), b); };
+  if ($('progSel')) $('progSel').onchange = function () {
+    if (this.value === '') return;
+    var pr = atajos.programas[+this.value];
+    get('/editor/programa?n=' + this.value, function (r) {
+      if (r.error) return msg(r.error, 'err');
+      b.type = r.type; b.val = r.val; if (r.args) b.args = r.args; else delete b.args;
+      b.icon = r.icon; b.label = r.label; delete b.auto;
+      if (b.id.indexOf('nuevo') === 0) b.id = uniqueId(r.label);
+      setDirty(); renderPanel(); refreshKey();
+      msg(r.noInstalado ? pr.nombre + ' NO esta instalado en esta PC (el boton no va a abrir nada)' : 'Listo: ' + pr.nombre + ' (acordate de GUARDAR)', r.noInstalado ? 'err' : 'warn');
+    });
+  };
+  if ($('appPick')) $('appPick').onclick = function () { msg('Elegi el programa en la ventana de Windows…', 'warn'); useApp('/editor/pickexe', b); };
+  if ($('rec')) $('rec').onclick = function () { recordKey(b, this); };
+  if ($('atajoSel')) {
+    var showNota = function () { var j = juegoDe($('atajoSel').value || b.val); $('atajoNota').textContent = j ? j.nota || '' : ''; };
+    $('atajoSel').onchange = function () {
+      var p = this.value.split('|'), j = atajos.juegos[+p[0]], a = j && j.acciones[+p[1]]; if (!a) return;
+      b.val = a.val; b.label = a.label; if (a.icon) b.icon = a.icon;
+      if (b.id.indexOf('nuevo') === 0) b.id = uniqueId(j.nombre.split(' ')[0] + '_' + a.label);
+      setDirty(); renderPanel(); refreshKey();
+    };
+    showNota();
+  }
+}
+var atajos = { juegos: [] };
+function atajoOptions(val) {
+  var h = '<option value="">— Elegi una accion (' + atajos.juegos.map(function (j) { return j.nombre; }).join(', ') + ') —</option>';
+  atajos.juegos.forEach(function (j, ji) {
+    h += '<optgroup label="' + esc(j.nombre) + '">' + j.acciones.map(function (a, ai) {
+      return '<option value="' + ji + '|' + ai + '"' + (a.val === val ? ' selected' : '') + '>' + esc(a.label) + '   (' + esc(a.val) + ')</option>';
+    }).join('') + '</optgroup>';
+  });
+  return h;
+}
+function juegoDe(v) {
+  if (!v) return null;
+  if (v.indexOf('|') > 0) return atajos.juegos[+v.split('|')[0]];
+  for (var i = 0; i < atajos.juegos.length; i++) for (var k = 0; k < atajos.juegos[i].acciones.length; k++) if (atajos.juegos[i].acciones[k].val === v) return atajos.juegos[i];
+  return null;
+}
+function appOptions(filter) {
+  var f = (filter || '').toLowerCase(), groups = {}, h = '<option value="">' + (apps.length ? '— Elegi un programa de la lista (' + apps.length + ') —' : 'Cargando programas…') + '</option>';
+  apps.forEach(function (a) { if (f && a.name.toLowerCase().indexOf(f) < 0) return; (groups[a.group] = groups[a.group] || []).push(a); });
+  ['Escritorio', 'Menu Inicio'].forEach(function (g) {
+    if (!groups[g]) return;
+    h += '<optgroup label="' + g + '">' + groups[g].map(function (a) { return '<option value="' + esc(a.path) + '">' + esc(a.name) + '</option>'; }).join('') + '</optgroup>';
+  });
+  return h;
+}
+function useApp(url, b) {
+  get(url, function (r) {
+    if (r.cancel) { msg(dirty ? 'Cambios sin guardar' : '', dirty ? 'warn' : ''); return; }
+    if (r.error) return msg(r.error, 'err');
+    b.type = r.type; b.val = r.val; if (r.args) b.args = r.args; else delete b.args;
+    if (r.icon) b.icon = r.icon;
+    if (!b.label || b.label === 'NUEVO') { b.label = r.label; if (b.id.indexOf('nuevo') === 0) b.id = uniqueId(r.label); }
+    loadIcons(); setDirty(); renderPanel(); refreshKey();
+    msg('Listo: ' + r.label + ' (acordate de GUARDAR)', 'warn');
+  });
+}
+function recordKey(b, btn) {
+  btn.textContent = 'Apreta las teclas…'; btn.classList.add('rec');
+  var MAP = { Control: 'ctrl', Shift: 'shift', Alt: 'alt', AltGraph: 'alt', Meta: 'win', ' ': 'space', Enter: 'enter', Escape: 'esc', Tab: 'tab', Backspace: 'backspace', Delete: 'del',
+    Home: 'home', End: 'end', PageUp: 'pageup', PageDown: 'pagedown', ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  var NUM = { NumpadAdd: 'num+', NumpadSubtract: 'num-', NumpadMultiply: 'num*', NumpadDivide: 'num/', NumpadDecimal: 'num.' };
+  function h(e) {
+    e.preventDefault(); e.stopPropagation();
+    var k = MAP[e.key];
+    if (/^Numpad[0-9]$/.test(e.code)) k = 'num' + e.code.slice(6); else if (NUM[e.code]) k = NUM[e.code];
+    else if (/^F([1-9]|1[0-9]|2[0-4])$/.test(e.key)) k = e.key.toLowerCase();
+    else if (/^Key[A-Z]$/.test(e.code)) k = e.code.slice(3).toLowerCase(); else if (/^Digit[0-9]$/.test(e.code)) k = e.code.slice(5);
+    if (!k || k === 'ctrl' || k === 'shift' || k === 'alt' || k === 'win') return;   // esperar la tecla "de verdad"
+    var combo = []; if (e.ctrlKey) combo.push('ctrl'); if (e.shiftKey) combo.push('shift'); if (e.altKey) combo.push('alt'); if (e.metaKey) combo.push('win');
+    combo.push(k);
+    b.val = combo.join('+'); $('fVal').value = b.val; setDirty();
+    window.removeEventListener('keydown', h, true); btn.textContent = 'Grabar'; btn.classList.remove('rec');
+  }
+  window.addEventListener('keydown', h, true);
+}
+function toggleGallery(b) {
+  var G = $('gallery');
+  if (G.classList.contains('open')) { G.classList.remove('open'); return; }
+  G.innerHTML = icons.map(function (ic) { return '<div title="' + esc(ic.replace('icons/', '')) + '" data-ic="' + esc(ic) + '"><img src="' + esc(ic) + '" loading="lazy"></div>'; }).join('') || '<span class="small">No hay iconos</span>';
+  [].forEach.call(G.querySelectorAll('[data-ic]'), function (d) { d.onclick = function () { b.icon = d.getAttribute('data-ic'); setDirty(); renderPanel(); refreshKey(); }; });
+  G.classList.add('open');
+}
+function loadIcons() { get('/editor/icons', function (r) { if (r && r.length !== undefined) icons = r; }); }
+
+// ---------- guardar: mismo formato que botones.json a mano (un boton por linea) ----------
+function serialize() {
+  var out = '{\n  "pages": [\n';
+  out += cfg.pages.map(function (p) {
+    var s = '    {\n', keys = Object.keys(p).filter(function (k) { return k !== 'buttons'; });
+    keys.forEach(function (k) { s += '      ' + JSON.stringify(k) + ': ' + JSON.stringify(p[k]) + ',\n'; });
+    s += '      "buttons": [\n';
+    s += (p.buttons || []).map(function (b) {
+      return '        { ' + Object.keys(b).filter(function (k) { return b[k] !== undefined; }).map(function (k) { return JSON.stringify(k) + ': ' + JSON.stringify(b[k]); }).join(', ') + ' }';
+    }).join(',\n');
+    return s + '\n      ]\n    }';
+  }).join(',\n');
+  return out + '\n  ]\n}\n';
+}
+$('save').onclick = function () {
+  var bad = []; cfg.pages.forEach(function (p) { (p.buttons || []).forEach(function (b) { if ((b.type === 'launch' || b.type === 'url' || b.type === 'key') && !b.val) bad.push(b.label || b.id); }); });
+  if (bad.length && !confirm('Estos botones no tienen nada configurado y no van a hacer nada:\n' + bad.join(', ') + '\n\n¿Guardar igual?')) return;
+  fetch('/editor/save', { method: 'POST', body: serialize() }).then(function (r) { return r.json(); }).then(function (r) {
+    if (r.error) return msg('No se pudo guardar: ' + r.error, 'err');
+    dirty = false; $('save').disabled = true; msg('Guardado ✓  La tablet se actualiza sola', 'ok');
+  }).catch(function (e) { msg('No se pudo guardar (' + e.message + ')', 'err'); });
+};
+$('dcScan').onclick = function () {
+  if (dirty && !confirm('Tenes cambios sin guardar que se van a perder. ¿Seguir?')) return;
+  if (!confirm('Discord va a pasar solo por cada uno de tus servidores unos segundos para leer sus nombres. No toques nada mientras tanto. ¿Empezar?')) return;
+  var bt = this; bt.disabled = true; msg('Buscando tus servidores de Discord… no toques nada', 'warn');
+  get('/editor/discord', function (r) {
+    bt.disabled = false;
+    if (r.error) return msg(r.error, 'err');
+    get('/config', function (c) {
+      cfg = c; dirty = false; $('save').disabled = true; sel = -1;
+      cfg.pages.forEach(function (p, i) { if (p.name === 'DISCORD') cur = i; });
+      render(); loadIcons(); msg('Listo: ' + r.length + ' servidores en la pagina DISCORD (ya guardado)', 'ok');
+    });
+  });
+};
+window.onbeforeunload =function () { if (dirty) return 'Hay cambios sin guardar'; };
+
+get('/config', function (c) {
+  cfg = c; if (!cfg.pages || !cfg.pages.length) cfg.pages = [{ name: 'INICIO', buttons: [] }];
+  render();
+});
+get('/editor/apps', function (r) { apps = r || []; var s = $('appSel'); if (s) s.innerHTML = appOptions($('appFilter') ? $('appFilter').value : ''); });
+loadIcons();
+get('/atajos.json', function (r) { if (r && r.juegos) atajos = r; if (cfg && sel >= 0) renderPanel(); });
+</script>
+</body>
+</html>
