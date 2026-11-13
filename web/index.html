@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" href="/icons/botonera.png">
+<link rel="apple-touch-icon" href="/icons/botonera.png">
 <link rel="manifest" href="/manifest.json">
 <title>Botonera</title>
 <style>
@@ -44,7 +46,7 @@
   @keyframes inR { from { transform: translateX(-60px); opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inU { from { transform: translateY(50px);  opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inD { from { transform: translateY(-50px); opacity: .2; } to { transform: none; opacity: 1; } }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: var(--gap); justify-content: center; align-content: start; }
+  .grid { display: grid; grid-template-columns: repeat(var(--cols, auto-fill), var(--size)); gap: var(--gap); justify-content: center; align-content: start; }
   .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: var(--dgap); justify-content: center; margin: 20px auto 0; }
   .dpad .up { grid-column: 2; grid-row: 1; }
   .dpad .left { grid-column: 1; grid-row: 2; }
@@ -148,51 +150,65 @@
     return k;
   }
 
-  var curSz = 126, curGap = 30, curPadX = 44;
+  var curSz = 126, curGap = 20, curCols = 8;
   function calcLayout() {
     var w = window.innerWidth || document.documentElement.clientWidth || 800;
     var h = window.innerHeight || document.documentElement.clientHeight || 600;
-    var isPhone = (w < 600 && h > w) || (h < 550 && w > h);
-    var compact = isPhone || w < 780;
+    var compact = w < 780 || h < 550;
     var tabsH = compact ? 42 : 56;
-    var padX = compact ? 10 : 32;
+    var padX = compact ? 12 : 28;
     var padY = compact ? 8 : 16;
-    var gap = compact ? 12 : 24;
+    var gap = compact ? 10 : 22;
     var dgap = compact ? 10 : 18;
+    var cols = 8;
     var sz = 126;
 
     if (w < 600 && h > w) {
-      // Celular vertical: 3 columnas que ocupan todo el ancho
-      sz = Math.floor((w - padX * 2 - gap * 2) / 3);
-      if (sz < 70) sz = 70;
+      // Celular VERTICAL: 3 columnas, 5 filas para que entren los 15 botones sin scroll
+      cols = 3;
+      var szW = Math.floor((w - padX * 2 - gap * (cols - 1)) / cols);
+      var szH = Math.floor((h - tabsH - padY * 2 - gap * 4) / 5);
+      sz = Math.min(szW, szH);
+      if (sz < 64) sz = 64;
+      if (sz > 120) sz = 120;
     } else if (h < 550 && w > h) {
-      // Celular horizontal: 2 filas que ocupan el alto disponible
-      var availH = h - tabsH - padY * 2;
-      sz = Math.floor((availH - gap) / 2);
-      if (sz < 70) sz = 70;
-      if (sz > 165) sz = 165;
-      var cols = Math.floor((w - padX * 2 + gap) / (sz + gap));
-      if (cols > 1) {
-        gap = Math.floor((w - padX * 2 - cols * sz) / (cols - 1));
-        if (gap < 8) gap = 8;
-        if (gap > 28) gap = 28;
+      // Celular HORIZONTAL: 5 columnas (3 filas) o 8 columnas (2 filas)
+      // Calculamos para 5 columnas x 3 filas:
+      var s5W = Math.floor((w - padX * 2 - gap * 4) / 5);
+      var s5H = Math.floor((h - tabsH - padY * 2 - gap * 2) / 3);
+      var s5 = Math.min(s5W, s5H);
+
+      // Calculamos para 8 columnas x 2 filas:
+      var s8W = Math.floor((w - padX * 2 - gap * 7) / 8);
+      var s8H = Math.floor((h - tabsH - padY * 2 - gap * 1) / 2);
+      var s8 = Math.min(s8W, s8H);
+
+      if (s5 >= s8 && s5 >= 75) {
+        cols = 5; sz = s5;
+      } else {
+        cols = 8; sz = s8;
       }
-    } else if (w < 850) {
+      if (sz < 64) sz = 64;
+      if (sz > 115) sz = 115;
+    } else if (w < 900) {
       // Tablet chica (7" - 8")
-      sz = Math.floor((w - padX * 2 - gap * 3) / 4);
-      if (sz > 130) sz = 130;
-      if (sz < 85) sz = 85;
+      cols = 6;
+      sz = Math.floor((w - padX * 2 - gap * (cols - 1)) / cols);
+      if (sz > 118) sz = 118;
+      if (sz < 80) sz = 80;
     } else {
-      // Tablet grande / PC (Galaxy Tab 2, etc.)
+      // Tablet grande (Tab 2) o PC: 8 columnas clásicas de 126px
+      cols = 8;
       sz = 126;
       gap = 26;
     }
 
-    var lbl = sz < 85 ? 10 : (sz < 105 ? 11 : 12);
-    curSz = sz; curGap = gap; curPadX = padX;
+    var lbl = sz < 80 ? 9 : (sz < 98 ? 10 : (sz < 112 ? 11 : 12));
+    curSz = sz; curGap = gap; curCols = cols;
 
     var st = document.body.style;
     st.setProperty('--size', sz + 'px');
+    st.setProperty('--cols', cols);
     st.setProperty('--gap', gap + 'px');
     st.setProperty('--dgap', dgap + 'px');
     st.setProperty('--lbl', lbl + 'px');
@@ -200,11 +216,18 @@
     document.body.className = compact ? 'compact' : '';
   }
 
+  function applyGridCols(cols, sz) {
+    var gs = document.querySelectorAll('.grid');
+    for (var i = 0; i < gs.length; i++) {
+      gs[i].style.gridTemplateColumns = 'repeat(' + cols + ', ' + sz + 'px)';
+    }
+  }
+
   function fillGrid(grid, normalCount) {
+    grid.style.gridTemplateColumns = 'repeat(' + curCols + ', ' + curSz + 'px)';
     var old = grid.querySelectorAll('.key.empty');
     for (var j = 0; j < old.length; j++) grid.removeChild(old[j]);
-    var cols = Math.max(1, Math.floor((window.innerWidth - curPadX + curGap) / (curSz + curGap)));
-    var pad = Math.ceil(normalCount / cols) * cols;
+    var pad = Math.ceil(normalCount / curCols) * curCols;
     for (var i = normalCount; i < pad; i++) grid.appendChild(makeKey(null, true));
   }
 
@@ -349,6 +372,7 @@
 
   function onResize() {
     calcLayout();
+    applyGridCols(curCols, curSz);
     for (var i = 0; i < gridsMeta.length; i++) fillGrid(gridsMeta[i].grid, gridsMeta[i].count);
   }
   window.addEventListener('resize', onResize);

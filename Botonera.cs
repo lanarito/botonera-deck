@@ -191,8 +191,9 @@ class Botonera
         try
         {
             byte k = dir == "up" ? VOL_UP : (dir == "mute" ? VOL_MUTE : VOL_DN);
-            keybd_event(k, (byte)MapVirtualKey(k, 0), EXTENDED, UIntPtr.Zero);
-            keybd_event(k, (byte)MapVirtualKey(k, 0), EXTENDED | KEYUP, UIntPtr.Zero);
+            KeyScan(k, false);
+            Thread.Sleep(20);
+            KeyScan(k, true);
         }
         catch { }
 
