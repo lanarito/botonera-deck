@@ -316,3 +316,10 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - **Botón Pantalla Completa + PWA:** Se agregó botón `⛶` en la barra de pestañas para activar Fullscreen en Chrome del celular y ocultar la barra de navegación. Se ajustó el auto-escalado para que los botones llenen todo el ancho y alto sin márgenes vacíos.
 - **Todo commiteado y pusheado a GitHub** (commits `56267c4`, `174e5f2`, `b05e1b2`).
 
+## 23. [GEMINI — 2026-11-13] Ajuste 100% Pantalla + Cero Scroll en Teléfonos ✅
+- **Cero botones afuera:** Se reescribió el motor de layout en `web/index.html`. Ahora calcula el tamaño exacto probando columnas para garantizar que todos los botones de la página entren 100% dentro del alto y ancho disponible sin scroll vertical ni salirse de los marcos.
+- **Centrado automático:** `#pages` y `.page` ahora usan flexbox centrado con `overflow: hidden`, evitando desbordes o botones cortados.
+- **Iconos propios de Botonera Deck:** Se crearon `web/icons/botonera.png` (192px) y `web/icons/botonera512.png` (512px) con diseño propio neón azul y se asignaron en `manifest.json`, favicons y PWA. Se eliminó el ícono de Assetto del acceso directo.
+- **Pusheado a GitHub:** commit `fdd7834`. Kit ZIP actualizado en el Escritorio.
+
+
