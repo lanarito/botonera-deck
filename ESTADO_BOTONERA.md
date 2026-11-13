@@ -307,3 +307,12 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - **Sin ícono en la bandeja del reloj:** quitado por pedido del usuario; todo queda limpio en segundo plano y se accede por URL o desde los accesos directos en `C:\BotoneraDeck`.
 - **Instalador + Kit ZIP + Manual PDF:** `kit/armar_kit.ps1` y `kit/instalar.ps1` actualizados (incluyen `conectar.html`, `manifest.json` y `Manual - Botonera Deck.pdf`; al finalizar la instalación abre `conectar.html` con el QR). Generado `BotoneraDeck-Kit.zip` (282 KB) en el Escritorio.
 - **Pendiente al ir al simu / probar Samsung A51:** `git pull` en la PC del simu (o instalar desde el `.zip`), abrir `http://localhost:8790/conectar.html`, tocar `Habilitar WiFi / Firewall` una vez, y escanear el QR con el A51. Queda para después el auto-updater contra GitHub Releases.
+
+## 22. [GEMINI — 2026-11-13] Pruebas en vivo con Samsung A51 + Fixes ✅
+- **WiFi en vivo probada:** El A51 se conectó por WiFi a `http://192.168.3.178:8790/index.html`.
+- **Fix urlacl en español:** Se corrigió el comando `netsh` con `sddl=D:(A;;GX;;;WD)` para que funcione en Windows en español sin depender de `user=Everyone`.
+- **Fix Volumen (Core Audio):** Antes `keybd_event` para teclas multimedia no movía el volumen y quedaba clavado en 100%. Se cambió a control directo via `Endpoint().SetMasterVolumeLevelScalar`: probado en vivo bajando de 64% a 36% y subiendo a 44% desde el teléfono.
+- **Fix Enlaces Web (OpenUrl):** `Process.Start` abría pestañas en segundo plano si el navegador ya estaba abierto; ahora busca y trae la ventana del navegador (`chrome`, `msedge`, etc.) al frente con `SetForegroundWindow`.
+- **Botón Pantalla Completa + PWA:** Se agregó botón `⛶` en la barra de pestañas para activar Fullscreen en Chrome del celular y ocultar la barra de navegación. Se ajustó el auto-escalado para que los botones llenen todo el ancho y alto sin márgenes vacíos.
+- **Todo commiteado y pusheado a GitHub** (commits `56267c4`, `174e5f2`, `b05e1b2`).
+
