@@ -338,4 +338,13 @@ El usuario reporto que tocando el celu "no pasaba nada" (solo el cursor de la PC
 
 **Nota sobre la notebook de pruebas:** los botones de tipo `launch` (Discord, Assetto, SimHub, etc.) no tienen la app instalada aca, por eso Windows muestra el cursor "pensando" y no pasa nada visible; en la PC del simu abren bien. Los de volumen y URL (YouTube/Google) si funcionan en la notebook. Las teclas de CARRERA/PITS se mandan a la ventana enfocada (en el simu, a Assetto).
 
+## 25. [CLAUDE - 2026-11-13] Fix: barra de volumen visible + paginas web al frente (Botonera.cs)
+El usuario reporto que al modificar el volumen no aparecia la barra, y que YouTube/Google/Gmail no abrian pestaña visible ("queda detras" no alcanza). Arreglado en `Botonera.cs` (recompilado):
+- **Volumen con barra (OSD):** `Volume()` mandaba la tecla multimedia como **scancode** (via `KeyScan`/`SendInput`), y asi Windows NO muestra la barra ni, en algunas PC, mueve el nivel. Ahora manda la tecla multimedia por **VK directo** (`keybd_event(0xAF/0xAE/0xAD)`), que mueve el volumen (pasos de 2%) **y muestra la barra** de Windows. Core Audio queda solo de respaldo: si la tecla no movio el nivel, lo mueve a mano (4%). Mute: solo tecla multimedia (evita doble toggle).
+- **Paginas web al frente SI o SI:** `OpenUrl()` usaba `SetForegroundWindow` desde el hilo de segundo plano, y **Windows lo bloquea** (la pestaña abria detras de la ventana activa). Nuevo helper `ForceFront(hwnd)` que usa el truco **`AttachThreadInput`** (adjuntarse al hilo de la ventana con foco) + `BringWindowToTop` + `SetForegroundWindow`, con 2 intentos (350ms y 550ms) por si el navegador tarda en crear la pestaña. Restaura la ventana si estaba minimizada.
+- **Import nuevo:** `BringWindowToTop` (user32).
+- Probado en vivo: volumen 94%->92%->94% en pasos de 2% (tecla multimedia real -> OSD), y `url OK` + `ForceFront` sin error.
+
+Linea de compilacion (sigue igual): `csc.exe /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:Botonera.exe Botonera.cs`
+
 

@@ -168,36 +168,33 @@ class Botonera
     // up/down: sube/baja 4%. mute: silencia/activa con lectura real.
     static void Volume(string dir)
     {
-        try
-        {
-            var ep = Endpoint();
-            Guid g = Guid.Empty;
-            if (dir == "mute")
-            {
-                bool m; ep.GetMute(out m);
-                ep.SetMute(!m, ref g);
-            }
-            else
-            {
-                float lvl; ep.GetMasterVolumeLevelScalar(out lvl);
-                float step = 0.04f;
-                float next = dir == "up" ? Math.Min(1.0f, lvl + step) : Math.Max(0.0f, lvl - step);
-                ep.SetMasterVolumeLevelScalar(next, ref g);
-                if (dir == "up" && next > 0) ep.SetMute(false, ref g);
-            }
-        }
-        catch (Exception ex) { Log("Volume CoreAudio err: " + ex.Message); }
+        byte vk = dir == "up" ? VOL_UP : (dir == "mute" ? VOL_MUTE : VOL_DN);
+        float before = -1f;
+        try { Endpoint().GetMasterVolumeLevelScalar(out before); } catch { }
 
-        try
-        {
-            byte k = dir == "up" ? VOL_UP : (dir == "mute" ? VOL_MUTE : VOL_DN);
-            KeyScan(k, false);
-            Thread.Sleep(20);
-            KeyScan(k, true);
-        }
-        catch { }
+        // 1) Tecla multimedia por VK (no scancode) -> MUESTRA la barra de volumen de Windows (OSD) y mueve el nivel.
+        try { keybd_event(vk, 0, 0, UIntPtr.Zero); keybd_event(vk, 0, KEYUP, UIntPtr.Zero); } catch { }
+        Thread.Sleep(70);
 
-        Thread.Sleep(50);
+        // 2) Respaldo Core Audio: si la tecla multimedia no movio el nivel (pasa en algunas PC), lo movemos a mano.
+        if (dir != "mute")
+        {
+            try
+            {
+                var ep = Endpoint(); Guid g = Guid.Empty;
+                float after; ep.GetMasterVolumeLevelScalar(out after);
+                if (before >= 0 && Math.Abs(after - before) < 0.005f)
+                {
+                    float step = 0.04f;
+                    float next = dir == "up" ? Math.Min(1f, before + step) : Math.Max(0f, before - step);
+                    ep.SetMasterVolumeLevelScalar(next, ref g);
+                    if (dir == "up" && next > 0) ep.SetMute(false, ref g);
+                }
+            }
+            catch (Exception ex) { Log("Volume CoreAudio err: " + ex.Message); }
+        }
+
+        Thread.Sleep(40);
         Log("volumen " + dir + " -> " + VolInfo());
     }
 
@@ -395,29 +392,47 @@ class Botonera
             Log("url OK: " + url);
             ThreadPool.QueueUserWorkItem(delegate
             {
-                Thread.Sleep(300);
-                try
+                for (int intento = 0; intento < 2; intento++)
                 {
-                    foreach (var name in new string[] { "chrome", "msedge", "firefox", "brave" })
+                    Thread.Sleep(intento == 0 ? 350 : 550);
+                    try
                     {
-                        var procs = Process.GetProcessesByName(name);
-                        foreach (var p in procs)
+                        IntPtr h = IntPtr.Zero;
+                        foreach (var name in new string[] { "chrome", "msedge", "firefox", "brave" })
                         {
-                            IntPtr h = p.MainWindowHandle;
-                            if (h != IntPtr.Zero)
+                            foreach (var p in Process.GetProcessesByName(name))
                             {
-                                if (IsIconic(h)) ShowWindow(h, 9);
-                                else ShowWindow(h, 5);
-                                SetForegroundWindow(h);
-                                break;
+                                if (p.MainWindowHandle != IntPtr.Zero) { h = p.MainWindowHandle; break; }
                             }
+                            if (h != IntPtr.Zero) break;
                         }
+                        if (h != IntPtr.Zero) ForceFront(h);
                     }
+                    catch { }
                 }
-                catch { }
             });
         }
         catch (Exception e) { Log("url ERROR " + url + ": " + e.Message); }
+    }
+
+    // Trae una ventana al frente SI o SI. Windows bloquea SetForegroundWindow desde un proceso en
+    // segundo plano (Botonera.exe); el truco es adjuntarse al hilo de la ventana que tiene el foco.
+    static void ForceFront(IntPtr h)
+    {
+        if (h == IntPtr.Zero) return;
+        try
+        {
+            if (IsIconic(h)) ShowWindow(h, 9);   // SW_RESTORE
+            else ShowWindow(h, 5);               // SW_SHOW
+            uint pid;
+            uint fg = GetWindowThreadProcessId(GetForegroundWindow(), out pid);
+            uint me = GetCurrentThreadId();
+            if (fg != me) AttachThreadInput(me, fg, true);
+            BringWindowToTop(h);
+            SetForegroundWindow(h);
+            if (fg != me) AttachThreadInput(me, fg, false);
+        }
+        catch { }
     }
 
     static void DoAction(string id)
@@ -595,6 +610,7 @@ class Botonera
 
     // --- ventana "Abrir" de Windows al frente (Botonera.exe no tiene ventanas: se usa una duena invisible y TopMost) ---
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
+    [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr h);
     [DllImport("user32.dll")] static extern bool AttachThreadInput(uint a, uint b, bool attach);
     [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
     static readonly object PickLk = new object();
