@@ -164,18 +164,39 @@ class Botonera
         for (int i = keys.Count - 1; i >= 0; i--) KeyScan(keys[i], true);
         Log("tecla " + combo + " -> ventana al frente: " + Foreground());
     }
-    // Volumen GENERAL de Windows con las teclas multimedia (muestra el cartelito de volumen).
-    // up/down: cada toque = 2 pasos de Windows (4%). mute: silencia/des-silencia todo.
+    // Volumen GENERAL de Windows usando Core Audio directamente (Endpoint.SetMasterVolumeLevelScalar / SetMute)
+    // up/down: sube/baja 4%. mute: silencia/activa con lectura real.
     static void Volume(string dir)
     {
-        byte k = dir == "up" ? VOL_UP : (dir == "mute" ? VOL_MUTE : VOL_DN);
-        int n = dir == "mute" ? 1 : 2;
-        for (int i = 0; i < n; i++)
+        try
         {
+            var ep = Endpoint();
+            Guid g = Guid.Empty;
+            if (dir == "mute")
+            {
+                bool m; ep.GetMute(out m);
+                ep.SetMute(!m, ref g);
+            }
+            else
+            {
+                float lvl; ep.GetMasterVolumeLevelScalar(out lvl);
+                float step = 0.04f;
+                float next = dir == "up" ? Math.Min(1.0f, lvl + step) : Math.Max(0.0f, lvl - step);
+                ep.SetMasterVolumeLevelScalar(next, ref g);
+                if (dir == "up" && next > 0) ep.SetMute(false, ref g);
+            }
+        }
+        catch (Exception ex) { Log("Volume CoreAudio err: " + ex.Message); }
+
+        try
+        {
+            byte k = dir == "up" ? VOL_UP : (dir == "mute" ? VOL_MUTE : VOL_DN);
             keybd_event(k, (byte)MapVirtualKey(k, 0), EXTENDED, UIntPtr.Zero);
             keybd_event(k, (byte)MapVirtualKey(k, 0), EXTENDED | KEYUP, UIntPtr.Zero);
         }
-        Thread.Sleep(80); // que Windows lo aplique antes de contestarle a la tablet el estado
+        catch { }
+
+        Thread.Sleep(50);
         Log("volumen " + dir + " -> " + VolInfo());
     }
 
@@ -365,7 +386,38 @@ class Botonera
         }
         catch (Exception e) { Log("launch ERROR " + path + ": " + e.Message); }
     }
-    static void OpenUrl(string url) { try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); Log("url OK: " + url); } catch (Exception e) { Log("url ERROR " + url + ": " + e.Message); } }
+    static void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            Log("url OK: " + url);
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                Thread.Sleep(300);
+                try
+                {
+                    foreach (var name in new string[] { "chrome", "msedge", "firefox", "brave" })
+                    {
+                        var procs = Process.GetProcessesByName(name);
+                        foreach (var p in procs)
+                        {
+                            IntPtr h = p.MainWindowHandle;
+                            if (h != IntPtr.Zero)
+                            {
+                                if (IsIconic(h)) ShowWindow(h, 9);
+                                else ShowWindow(h, 5);
+                                SetForegroundWindow(h);
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch { }
+            });
+        }
+        catch (Exception e) { Log("url ERROR " + url + ": " + e.Message); }
+    }
 
     static void DoAction(string id)
     {

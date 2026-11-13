@@ -152,27 +152,45 @@
   function calcLayout() {
     var w = window.innerWidth || document.documentElement.clientWidth || 800;
     var h = window.innerHeight || document.documentElement.clientHeight || 600;
-    var sz = 126, gap = 30, dgap = 22, lbl = 12, tabsH = 58, padX = 44, compact = false;
-    if (w < 560) {
-      compact = true; tabsH = 46; padX = 24; gap = 14; dgap = 12;
-      sz = Math.floor((w - padX - gap * 2) / 3);
-      if (sz > 112) sz = 112;
-      if (sz < 74) sz = 74;
-      lbl = sz < 92 ? 10 : 11;
-    } else if (h < 520) {
-      compact = true; tabsH = 44; padX = 24; gap = 14; dgap = 10;
-      sz = Math.floor((h - tabsH - 28 - gap) / 2);
-      if (sz > 110) sz = 110;
+    var isPhone = (w < 600 && h > w) || (h < 550 && w > h);
+    var compact = isPhone || w < 780;
+    var tabsH = compact ? 42 : 56;
+    var padX = compact ? 10 : 32;
+    var padY = compact ? 8 : 16;
+    var gap = compact ? 12 : 24;
+    var dgap = compact ? 10 : 18;
+    var sz = 126;
+
+    if (w < 600 && h > w) {
+      // Celular vertical: 3 columnas que ocupan todo el ancho
+      sz = Math.floor((w - padX * 2 - gap * 2) / 3);
       if (sz < 70) sz = 70;
-      lbl = sz < 88 ? 10 : 11;
-    } else if (w < 780) {
-      gap = 20; dgap = 16; padX = 36;
-      sz = Math.floor((w - padX - gap * 3) / 4);
-      if (sz > 116) sz = 116;
-      if (sz < 88) sz = 88;
-      lbl = 11;
+    } else if (h < 550 && w > h) {
+      // Celular horizontal: 2 filas que ocupan el alto disponible
+      var availH = h - tabsH - padY * 2;
+      sz = Math.floor((availH - gap) / 2);
+      if (sz < 70) sz = 70;
+      if (sz > 165) sz = 165;
+      var cols = Math.floor((w - padX * 2 + gap) / (sz + gap));
+      if (cols > 1) {
+        gap = Math.floor((w - padX * 2 - cols * sz) / (cols - 1));
+        if (gap < 8) gap = 8;
+        if (gap > 28) gap = 28;
+      }
+    } else if (w < 850) {
+      // Tablet chica (7" - 8")
+      sz = Math.floor((w - padX * 2 - gap * 3) / 4);
+      if (sz > 130) sz = 130;
+      if (sz < 85) sz = 85;
+    } else {
+      // Tablet grande / PC (Galaxy Tab 2, etc.)
+      sz = 126;
+      gap = 26;
     }
+
+    var lbl = sz < 85 ? 10 : (sz < 105 ? 11 : 12);
     curSz = sz; curGap = gap; curPadX = padX;
+
     var st = document.body.style;
     st.setProperty('--size', sz + 'px');
     st.setProperty('--gap', gap + 'px');
@@ -219,6 +237,20 @@
   }
   function goToPageByName(name) { for (var i = 0; i < pages.length; i++) { if ((pages[i].name || '') === name) { showPage(i); return; } } }
 
+  function isFS() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  }
+  function toggleFS() {
+    if (!isFS()) {
+      var el = document.documentElement;
+      var r = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+      if (r) { try { r.call(el); } catch (e) {} }
+    } else {
+      var c = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+      if (c) { try { c.call(document); } catch (e) {} }
+    }
+  }
+
   function buildTabs() {
     tabsEl.innerHTML = '';
     for (var i = 0; i < pages.length; i++) {
@@ -230,6 +262,13 @@
         tabsEl.appendChild(t);
       })(i);
     }
+    var fs = document.createElement('div');
+    fs.className = 'tab fs-tab';
+    fs.innerHTML = '⛶';
+    fs.title = 'Pantalla completa';
+    fs.addEventListener('touchstart', function (ev) { ev.preventDefault(); toggleFS(); }, { passive: false });
+    fs.addEventListener('click', toggleFS);
+    tabsEl.appendChild(fs);
   }
 
   var cfgVer = null;   // si botones.json cambia (editor de la PC) se recarga sola, quedandose en la misma pagina
@@ -314,6 +353,8 @@
   }
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', function () { setTimeout(onResize, 120); });
+  document.addEventListener('fullscreenchange', function () { setTimeout(onResize, 100); });
+  document.addEventListener('webkitfullscreenchange', function () { setTimeout(onResize, 100); });
 
   // arrancar: traer las paginas desde /config y armarlas TODAS una sola vez
   calcLayout();
