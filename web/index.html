@@ -168,10 +168,10 @@
     var h = window.innerHeight || document.documentElement.clientHeight || 600;
     var compact = w < 850 || h < 550;
     return { w: w, h: h, compact: compact,
-      tabsH: compact ? 42 : 54, padX: compact ? 8 : 20, padY: compact ? 6 : 12, gap: compact ? 10 : 22 };
+      tabsH: compact ? 42 : 54, padX: compact ? 6 : 20, padY: compact ? 5 : 12, gap: compact ? 8 : 20 };
   }
 
-  var MAXSZ = 126;   // tope de tamaño de boton (en tablet/PC grande queda como estaba: 8 col x 126)
+  var MAXSZ = 150;   // tope de tamaño de boton (botones un poco mas grandes; en tablet/PC crecen a ~150)
   function layoutActive() {
     var meta = pageMeta[cur]; if (!meta) return;
     var d = dims();
@@ -201,10 +201,11 @@
         cand.push({ c: c, s: s });
         if (s > maxS) maxS = s;
       }
-      // Entre las que dan buen tamaño (>=80% del maximo), elegir la que MAS llena el ancho.
+      // Entre las que dan buen tamaño (>=92% del maximo), elegir la que MAS llena el ancho.
+      // El 0.92 favorece botones mas grandes sin dejar de llenar casi todo el ancho.
       bestCols = Math.min(n, 4); bestSz = 40; var bestFill = -1;
       for (var i = 0; i < cand.length; i++) {
-        if (cand[i].s < maxS * 0.8) continue;
+        if (cand[i].s < maxS * 0.92) continue;
         var fill = cand[i].c * cand[i].s + (cand[i].c - 1) * gap;
         if (fill > bestFill) { bestFill = fill; bestCols = cand[i].c; bestSz = cand[i].s; }
       }

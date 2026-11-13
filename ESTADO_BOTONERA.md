@@ -358,4 +358,11 @@ El usuario reporto que en horizontal los botones quedaban chicos en el medio con
 - Tope de tamaño 126px -> en la tablet grande (Tab 2) sigue dando 8 col x 126 como antes.
 - Verificado por simulacion: INICIO llena 99-100% del ancho en vertical (3 col) y horizontal (7-8 col); CARRERA 100%; tablet 8x126. En pantallas muy anchas y bajas queda margen vertical (botones cuadrados) pero el ancho se llena y nada se corta.
 
+## 27. [CLAUDE - 2026-11-13] Botones un poco mas grandes
+A pedido del usuario. En el celu ya estaban casi al maximo que entra (los limita el espacio, no el tope), asi que el cambio ahi es chico (+2-4px); en tablet/PC crecen mas. Ajustes en `web/index.html`:
+- `MAXSZ` 126 -> **150** (tope de tamaño de boton).
+- Preferencia tamaño/ancho (`layoutActive`): umbral 0.80 -> **0.92** (favorece botones mas grandes sin dejar de llenar ~94-100% del ancho).
+- Margenes/espacios compactos (celu) achicados: padX 8->6, padY 6->5, gap 10->8, para ganar unos px.
+- Simulado [ok] (nada se sale): vertical 3col ~124px; horizontal 7col ~102px; A51 horiz 8col ~105px; tablet 7col ~150px.
+
 
