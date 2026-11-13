@@ -322,4 +322,20 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - **Iconos propios de Botonera Deck:** Se crearon `web/icons/botonera.png` (192px) y `web/icons/botonera512.png` (512px) con diseño propio neón azul y se asignaron en `manifest.json`, favicons y PWA. Se eliminó el ícono de Assetto del acceso directo.
 - **Pusheado a GitHub:** commit `fdd7834`. Kit ZIP actualizado en el Escritorio.
 
+## 24. [CLAUDE - 2026-11-13] Fix: botones no disparaban + fullscreen tiraba botones afuera
+El usuario reporto que tocando el celu "no pasaba nada" (solo el cursor de la PC "pensando") y que al tocar el boton de pantalla completa los botones se iban de la pantalla. Diagnostico en vivo:
+- **La cadena accion->PC funciona** (el log mostraba `toque: volup -> volumen up 80/84/88%`). El problema era el lado del navegador.
+- **Causa del "no dispara":** el toque salia al LEVANTAR el dedo (`touchend`) y SOLO si `!moved`, donde `moved` se activaba con apenas **18px** de movimiento. En un celu con pantalla sensible casi cualquier toque registra ese micro-movimiento -> se tomaba como "desliz" -> nunca llamaba a `/press`. Por eso no habia `toque:` en el log.
+- **Causa del "se van de la pantalla":** `calcLayout()` para telefono dimensionaba para 15 botones en 3 filas, pero la pagina **PITS** necesita 4 filas (fila de 3 + cruz 3x3). La cruz quedaba fuera.
+
+**Arreglos en `web/index.html`:**
+1. La accion ahora sale **AL TOCAR** (`touchstart`), instantaneo y a prueba de fallos. Se mantiene el guard anti-doble-disparo de la tablet (ignora el clic sintetico que llega <1s despues del toque).
+2. Se **quito el gesto de deslizar** entre paginas (era lo que se comia el toque). La navegacion queda por las pestañas de arriba y por los botones `page`/`goto`.
+3. `calcLayout()` ahora **reserva 4 filas** al calcular el tamaño -> ninguna pagina (ni PITS) se sale, ni en pantalla completa.
+4. Recalculo de layout mas robusto al entrar/salir de fullscreen (120ms + 400ms, y se cubre `mozfullscreenchange`).
+
+**IMPORTANTE:** para que el celu tome el fix hay que **recargar la pagina** en el navegador del celu (el auto-reload solo se dispara si cambia `botones.json`, no `index.html`).
+
+**Nota sobre la notebook de pruebas:** los botones de tipo `launch` (Discord, Assetto, SimHub, etc.) no tienen la app instalada aca, por eso Windows muestra el cursor "pensando" y no pasa nada visible; en la PC del simu abren bien. Los de volumen y URL (YouTube/Google) si funcionan en la notebook. Las teclas de CARRERA/PITS se mandan a la ventana enfocada (en el simu, a Assetto).
+
 
