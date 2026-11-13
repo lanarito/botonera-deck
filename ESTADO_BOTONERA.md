@@ -1,7 +1,7 @@
 # ESTADO — BOTONERA DECK (coordinación Claude + Gemini)
 **Última actualización:** 2026-11-11
 
-> Doc de trabajo compartido para la botonera táctil. Repo privado: https://github.com/lanarito/botonera-deck
+> Doc de trabajo compartido para la botonera táctil. Repo PÚBLICO: https://github.com/lanarito/botonera-deck
 > Hermanos (NO mezclar): `luces-sim` (luces ambiente) y `moza-cm2-dash` (dash MOZA CM2). No tocar `iflag`.
 
 ---
@@ -50,7 +50,7 @@ Botonera táctil estilo **Stream Deck** en una **tablet Samsung Galaxy Tab 2 (GT
 4) Túnel: adb reverse tcp:8790 tcp:8790
 5) Abrir en la tablet (Jelly): adb shell am start -a android.intent.action.VIEW -d "http://localhost:8790/index.html" -n org.lineageos.jelly/.MainActivity
 ```
-Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:Botonera.exe Botonera.cs`
+Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll /out:Botonera.exe Botonera.cs` (las dos `System.IO.Compression*` son para la auto-actualizacion: descomprimir el ZIP del repo).
 (la `/r:System.Web.Extensions.dll` es para leer `botones.json` con `JavaScriptSerializer`.)
 
 ## 5. PENDIENTE
@@ -364,5 +364,21 @@ A pedido del usuario. En el celu ya estaban casi al maximo que entra (los limita
 - Preferencia tamaño/ancho (`layoutActive`): umbral 0.80 -> **0.92** (favorece botones mas grandes sin dejar de llenar ~94-100% del ancho).
 - Margenes/espacios compactos (celu) achicados: padX 8->6, padY 6->5, gap 10->8, para ganar unos px.
 - Simulado [ok] (nada se sale): vertical 3col ~124px; horizontal 7col ~102px; A51 horiz 8col ~105px; tablet 7col ~150px.
+
+## 28. [CLAUDE - 2026-11-13] AUTO-ACTUALIZACION desde GitHub (repo publico)
+Pedido del usuario: que al tocar/actualizar algo, a todos los que tienen la botonera les aparezca un aviso y puedan actualizar solos. **Hecho** (repo ya estaba PUBLICO; Gemini no habia dejado el updater).
+
+**Como funciona:**
+- `version.json` en la raiz del repo marca la version (`version`, `fecha`, `notas`). Es la fuente de verdad.
+- `Botonera.exe` (nuevo codigo en `Botonera.cs`): al arrancar y cada 15 min consulta `https://raw.githubusercontent.com/lanarito/botonera-deck/main/version.json`. Si la version remota es mayor que la local, lo avisa.
+  - TLS 1.2 forzado (`ServicePointManager.SecurityProtocol`) para poder hablar con GitHub desde .NET 4.
+  - `/state` agrega `_update:{ver,notas}` cuando hay version nueva.
+  - Endpoints nuevos: `/update-check` (fuerza chequeo) y `/update` (descarga + aplica).
+- La botonera (`web/index.html`): cuando ve `_update` muestra un **cartel neon** "Actualizacion disponible vX + notas" con botones **Ahora no** / **Actualizar**. Al tocar Actualizar: `GET /update`, muestra "Actualizando...", y cuando el server se reinicia y vuelve, recarga sola.
+- `ApplyUpdate()`: baja el ZIP del repo (`archive/refs/heads/main.zip`), lo descomprime, escribe un `.bat` que **espera a que Botonera.exe cierre**, hace `robocopy /E` de los archivos nuevos sobre la carpeta de instalacion (excluye `.git`), y relanza `Botonera.exe`. Asi se actualiza hasta el propio `.exe`.
+
+**Como publica el usuario una actualizacion:** `\.publicar.ps1 "que cambie"` -> sube el ultimo numero de version.json, recompila si toco `Botonera.cs`, y hace commit + push. Listo: a los demas les aparece el aviso.
+
+**Ojo:** en la PC de desarrollo (esta) la version local = la remota, asi que NO se auto-ofrece update (no se pisa el laburo). El updater es para las PC que descargaron.
 
 

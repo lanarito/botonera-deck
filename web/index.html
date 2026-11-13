@@ -108,12 +108,26 @@
 
   #dot { position: absolute; right: 14px; bottom: 10px; width: 9px; height: 9px; border-radius: 50%; background: #c33; box-shadow: 0 0 8px #c33; z-index: 2; }
   #dot.ok { background: #2c4; box-shadow: 0 0 8px #2c4; }
+
+  /* cartel de actualizacion */
+  #upd { position: absolute; left: 50%; top: 50%; margin: 0; transform: translate(-50%,-50%); z-index: 20;
+    width: 86%; max-width: 540px; background: #0b0d12; border: 1px solid #5865F2; border-radius: 16px;
+    box-shadow: 0 0 44px -6px #5865F2; padding: 22px; text-align: center; display: none; }
+  #upd.show { display: block; }
+  #upd h3 { margin: 0 0 8px; color: #fff; font-size: 19px; letter-spacing: 1px; }
+  #upd p { margin: 0 0 16px; color: #aab2bd; font-size: 14px; line-height: 1.4; }
+  #upd .row { display: flex; gap: 10px; justify-content: center; }
+  #upd button { font-family: inherit; font-weight: 700; font-size: 15px; letter-spacing: 1px; border-radius: 12px;
+    padding: 12px 22px; border: 1px solid #1c1f25; background: #07080a; color: #8a929d; }
+  #upd button.go { border-color: #5865F2; color: #fff; box-shadow: 0 0 16px -3px #5865F2; }
+  #upd .mini { font-size: 12px; color: #6b7280; margin-top: 12px; }
 </style>
 </head>
 <body>
 <div id="tabs"></div>
 <div id="pages"></div>
 <div id="dot"></div>
+<div id="upd"></div>
 <script>
   // ES5 + XMLHttpRequest. Paginas PRE-ARMADAS una sola vez -> cambio instantaneo.
   var dot = document.getElementById('dot');
@@ -300,6 +314,7 @@
   var cfgVer = null;   // si botones.json cambia (editor de la PC) se recarga sola, quedandose en la misma pagina
   function apply(s) {
     dot.className = 'ok';
+    if (s._update) showUpdate(s._update);
     if (s._cfg) {
       if (cfgVer === null) cfgVer = s._cfg;
       else if (cfgVer !== s._cfg) { cfgVer = s._cfg; location.hash = 'p' + cur; location.reload(); return; }
@@ -313,6 +328,35 @@
     }
   }
   function req(url) { xhrGet(url, function (err, txt) { if (err) { dot.className = ''; return; } var s; try { s = JSON.parse(txt); } catch (e) { return; } apply(s); }); }
+
+  // ---- Cartel de ACTUALIZACION (cuando hay una version nueva en GitHub) ----
+  var updShown = false, updating = false, sawDown = false;
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function showUpdate(info) {
+    if (updShown || updating) return; updShown = true;
+    var el = document.getElementById('upd');
+    el.innerHTML = '<h3>Actualización disponible</h3>' +
+      '<p>Versión ' + esc(info.ver || '') + (info.notas ? '<br>' + esc(info.notas) : '') + '</p>' +
+      '<div class="row"><button id="updNo">Ahora no</button><button class="go" id="updGo">Actualizar</button></div>' +
+      '<div class="mini">se descarga sola y se reinicia</div>';
+    el.className = 'show';
+    document.getElementById('updNo').onclick = function () { el.className = ''; };
+    document.getElementById('updGo').onclick = doUpdate;
+  }
+  function doUpdate() {
+    updating = true; sawDown = false;
+    var el = document.getElementById('upd');
+    el.innerHTML = '<h3>Actualizando…</h3><p>Descargando la versión nueva y reiniciando.<br>No cierres esta pantalla.</p>';
+    el.className = 'show';
+    xhrGet('/update', function () { setTimeout(waitBack, 3000); });
+  }
+  function waitBack() {   // espera a que el server se reinicie y vuelva, y recarga con la version nueva
+    xhrGet('/state', function (err) {
+      if (err) { sawDown = true; setTimeout(waitBack, 1500); }
+      else if (sawDown) { location.reload(); }
+      else { setTimeout(waitBack, 1500); }
+    });
+  }
 
   // Navegacion entre paginas: por las pestañas de arriba y por los botones (page / goto).
   // Se quito el gesto de "deslizar" porque confundia un toque normal con un desliz

@@ -18,6 +18,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using System.IO.Compression;
 
 class Botonera
 {
@@ -27,6 +28,14 @@ class Botonera
     static readonly string WebDir = Path.Combine(Dir, "web");
     static readonly string LogPath = Path.Combine(Dir, "estado_botonera.txt");
     static readonly string CfgPath = Path.Combine(Dir, "botones.json");
+    // ===== Auto-actualizacion desde GitHub (repo publico) =====
+    static readonly string VerPath = Path.Combine(Dir, "version.json");
+    const string RepoRaw = "https://raw.githubusercontent.com/lanarito/botonera-deck/main/version.json";
+    const string RepoZip = "https://github.com/lanarito/botonera-deck/archive/refs/heads/main.zip";
+    static string LocalVer = "0.0.0";
+    static volatile string UpdVer = null;      // version remota si hay actualizacion disponible
+    static volatile string UpdNotas = "";
+    static volatile bool Updating = false;
     static readonly string Adb = FindAdb();
 
     [DllImport("user32.dll")] static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
@@ -481,6 +490,8 @@ class Botonera
             long ver = 0; try { ver = File.GetLastWriteTimeUtc(CfgPath).Ticks; } catch { }
             if (!first) sb.Append(',');
             sb.Append("\"_cfg\":\"").Append(ver).Append('"');
+            // si hay una version nueva en GitHub, avisarle a la botonera (muestra el cartel de actualizar)
+            if (UpdVer != null) sb.Append(",\"_update\":{\"ver\":").Append(Js(UpdVer)).Append(",\"notas\":").Append(Js(UpdNotas)).Append('}');
             return sb.Append('}').ToString();
         }
     }
@@ -514,6 +525,8 @@ class Botonera
                 return;
             }
             if (path == "/state") { Send(c.Response, 200, "application/json", Encoding.UTF8.GetBytes(StateJson())); return; }
+            if (path == "/update-check") { CheckUpdate(); SendJs(c, new Dictionary<string, object> { { "hay", UpdVer != null }, { "ver", UpdVer }, { "notas", UpdNotas }, { "local", LocalVer } }); return; }
+            if (path == "/update") { ThreadPool.QueueUserWorkItem(delegate { ApplyUpdate(); }); SendJs(c, new Dictionary<string, object> { { "ok", true }, { "msg", "Descargando y aplicando la actualizacion..." } }); return; }
             if (path == "/audioapps") { SendJs(c, ActiveAudioApps()); return; }
             if (path == "/netinfo")
             {
@@ -1249,11 +1262,124 @@ class Botonera
         catch (Exception e) { Log("netenable err: " + e.Message); return false; }
     }
 
+    // ===== Auto-actualizacion =====
+    static void ReadLocalVer()
+    {
+        try
+        {
+            if (File.Exists(VerPath))
+            {
+                var d = new JavaScriptSerializer().DeserializeObject(File.ReadAllText(VerPath)) as Dictionary<string, object>;
+                if (d != null && d.ContainsKey("version")) LocalVer = Convert.ToString(d["version"]);
+            }
+        }
+        catch { }
+    }
+
+    static string HttpGetString(string url)
+    {
+        var req = (HttpWebRequest)WebRequest.Create(url);
+        req.UserAgent = "BotoneraDeck"; req.Timeout = 8000; req.ReadWriteTimeout = 8000;
+        using (var resp = (HttpWebResponse)req.GetResponse())
+        using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
+            return sr.ReadToEnd().TrimStart('﻿', '\r', '\n', ' ', '\t');
+    }
+
+    static int VerInt(string s)
+    {
+        if (s == null) return 0;
+        var digs = new StringBuilder();
+        foreach (char ch in s) if (ch >= '0' && ch <= '9') digs.Append(ch);
+        int n; return int.TryParse(digs.ToString(), out n) ? n : 0;
+    }
+    static bool VerGreater(string a, string b)   // a > b ?
+    {
+        var pa = (a ?? "0").Split('.'); var pb = (b ?? "0").Split('.');
+        int max = Math.Max(pa.Length, pb.Length);
+        for (int i = 0; i < max; i++)
+        {
+            int x = i < pa.Length ? VerInt(pa[i]) : 0;
+            int y = i < pb.Length ? VerInt(pb[i]) : 0;
+            if (x != y) return x > y;
+        }
+        return false;
+    }
+
+    static void CheckUpdate()
+    {
+        try
+        {
+            string txt = HttpGetString(RepoRaw);
+            var d = new JavaScriptSerializer().DeserializeObject(txt) as Dictionary<string, object>;
+            if (d == null || !d.ContainsKey("version")) return;
+            string rv = Convert.ToString(d["version"]);
+            string notas = d.ContainsKey("notas") ? Convert.ToString(d["notas"]) : "";
+            if (VerGreater(rv, LocalVer)) { UpdVer = rv; UpdNotas = notas; Log("actualizacion disponible: v" + rv + " (tengo v" + LocalVer + ")"); }
+            else { UpdVer = null; }
+        }
+        catch (Exception e) { Log("check update: " + e.Message); }
+    }
+
+    static void UpdateLoop()
+    {
+        Thread.Sleep(15000);                 // esperar a que todo arranque
+        while (true) { CheckUpdate(); Thread.Sleep(15 * 60 * 1000); }   // revisar cada 15 min
+    }
+
+    static void ApplyUpdate()
+    {
+        if (Updating) return; Updating = true;
+        string tmp = Path.Combine(Path.GetTempPath(), "botonera_upd_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Log("actualizacion: descargando...");
+            Directory.CreateDirectory(tmp);
+            string zip = Path.Combine(tmp, "main.zip");
+            var req = (HttpWebRequest)WebRequest.Create(RepoZip);
+            req.UserAgent = "BotoneraDeck"; req.Timeout = 60000; req.ReadWriteTimeout = 120000; req.AllowAutoRedirect = true;
+            using (var resp = req.GetResponse())
+            using (var rs = resp.GetResponseStream())
+            using (var fs = File.Create(zip))
+                rs.CopyTo(fs);
+
+            string ex = Path.Combine(tmp, "x");
+            ZipFile.ExtractToDirectory(zip, ex);
+            string src = ex;                 // el zip trae una carpeta raiz (botonera-deck-main)
+            var subs = Directory.GetDirectories(ex);
+            if (subs.Length == 1) src = subs[0];
+
+            int pid = Process.GetCurrentProcess().Id;
+            string dest = Dir.TrimEnd('\\');
+            string bat = Path.Combine(Path.GetTempPath(), "botonera_aplicar_" + Guid.NewGuid().ToString("N") + ".bat");
+            var sb = new StringBuilder();
+            sb.AppendLine("@echo off");
+            sb.AppendLine(":wait");
+            sb.AppendLine("tasklist /FI \"PID eq " + pid + "\" | find \"" + pid + "\" >nul && (ping -n 2 127.0.0.1 >nul & goto wait)");
+            sb.AppendLine("robocopy \"" + src + "\" \"" + dest + "\" /E /IS /IT /R:2 /W:1 /XD .git /NFL /NDL /NJH /NJS >nul");
+            sb.AppendLine("start \"\" \"" + Path.Combine(dest, "Botonera.exe") + "\"");
+            sb.AppendLine("rmdir /S /Q \"" + tmp + "\"");
+            sb.AppendLine("del \"%~f0\"");
+            File.WriteAllText(bat, sb.ToString(), Encoding.Default);
+            Process.Start(new ProcessStartInfo("cmd.exe", "/c \"" + bat + "\"") { WindowStyle = ProcessWindowStyle.Hidden, CreateNoWindow = true, UseShellExecute = false });
+            Log("actualizacion: reiniciando para aplicar v" + (UpdVer ?? "?") + "...");
+            Thread.Sleep(600);
+            Environment.Exit(0);
+        }
+        catch (Exception e)
+        {
+            Updating = false;
+            Log("actualizacion ERROR: " + e.Message);
+            try { Directory.Delete(tmp, true); } catch { }
+        }
+    }
+
     static void Main()
     {
         bool created;
         AppMutex = new Mutex(true, "Local\\BotoneraTabletLanaro", out created);
         if (!created) return;
+        try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)768; } catch { }   // TLS 1.2/1.1 para hablar con GitHub
+        ReadLocalVer();
         LoadConfig(true);
         Listener = new HttpListener();
         try
@@ -1274,6 +1400,7 @@ class Botonera
         Log("Iniciada en puerto " + Port + (LanEnabled ? " (WiFi/LAN + USB, IP " + GetLocalIp() + ")" : " (solo localhost/USB; falta urlacl para WiFi)") + ".");
         var t = new Thread(AdbLoop) { IsBackground = true }; t.Start();
         new Thread(DiscordFirstRun) { IsBackground = true }.Start();   // volante + servidores de Discord, solos la primera vez
+        new Thread(UpdateLoop) { IsBackground = true }.Start();        // revisa actualizaciones en GitHub
         while (true)
         {
             try
