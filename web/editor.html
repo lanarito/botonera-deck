@@ -74,6 +74,7 @@
   <h1>EDITOR DE LA BOTONERA</h1>
   <div class="hint">Toca un boton para cambiarlo, arrastralo para moverlo. Al GUARDAR, la tablet se actualiza sola.</div>
   <span id="msg"></span>
+  <a href="/conectar.html" target="_blank" style="text-decoration:none"><button type="button" title="Mostrar QR y direccion para abrir la botonera en el celu o tablet">Conectar Celu / QR</button></a>
   <button id="dcScan" title="Busca tus servidores de Discord y arma la pagina DISCORD">Actualizar mis servidores de Discord</button>
   <button class="main" id="save" disabled>GUARDAR</button>
 </header>
@@ -87,7 +88,7 @@
 </main>
 <script>
 var cfg = null, cur = 0, sel = -1, dirty = false, apps = [], icons = [];
-var TYPES = [['launch', 'Abrir un programa'], ['url', 'Abrir una pagina web / enlace'], ['key', 'Apretar teclas (Assetto, atajos)'], ['vol', 'Volumen de Windows'], ['page', 'Ir a otra pagina de la botonera']];
+var TYPES = [['launch', 'Abrir un programa'], ['url', 'Abrir una pagina web / enlace'], ['key', 'Apretar teclas (Assetto, atajos)'], ['vol', 'Volumen general de Windows'], ['appvol', 'Volumen de UN programa (Discord, AC, Chrome…)'], ['page', 'Ir a otra pagina de la botonera']];
 var $ = function (id) { return document.getElementById(id); };
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
 function get(url, cb) { fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(cb).catch(function (e) { msg('No hay conexion con Botonera.exe (' + e.message + ')', 'err'); }); }
@@ -241,13 +242,29 @@ function renderType(b) {
     h += '<div class="small">Apreta <b>Grabar</b> y despues la combinacion en el teclado. O escribila: ctrl, shift, alt, a-z, 0-9, f1-f24, num0-num9, num+, num-, up, down, left, right, enter, esc, space… (F13 a F24 no existen en el teclado: escribilas). Para Assetto, asigna la misma tecla en Content Manager.</div>';
   } else if (b.type === 'vol') {
     h += '<label class="f">Accion</label><select id="fVal">' + [['up', 'Subir volumen'], ['down', 'Bajar volumen'], ['mute', 'Silenciar / activar todo']].map(function (o) { return '<option value="' + o[0] + '"' + (b.val === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+  } else if (b.type === 'appvol') {
+    h += '<label class="f">Programas sonando ahora (o comunes)</label><select id="audSel"><option value="">Cargando…</option></select>';
+    h += '<label class="f">Proceso (nombre sin .exe)</label><input type="text" id="fVal" value="' + esc(b.val) + '" placeholder="Discord / acs / chrome / Spotify">';
+    h += '<label class="f">Accion</label><select id="fArgs">' + [['up', 'Subir volumen (+6%)'], ['down', 'Bajar volumen (-6%)'], ['mute', 'Silenciar / activar (con luz)']].map(function (o) { return '<option value="' + o[0] + '"' + ((b.args || 'mute') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
+    h += '<div class="small">Controla el volumen real de ese programa en Windows (Core Audio). Ej: <b>Discord</b>, <b>acs</b> (Assetto Corsa), <b>chrome</b>, <b>Spotify</b>.</div>';
   } else if (b.type === 'page') {
     h += '<label class="f">Pagina</label><select id="fVal">' + pageOptions(b.val) + '</select>';
   }
   T.innerHTML = h;
   var fv = $('fVal');
   if (fv) { fv.oninput = fv.onchange = function () { b.val = this.value; setDirty(); }; }
-  if ($('fArgs')) $('fArgs').oninput = function () { if (this.value) b.args = this.value; else delete b.args; setDirty(); };
+  if ($('fArgs')) $('fArgs').oninput = $('fArgs').onchange = function () { if (this.value) b.args = this.value; else delete b.args; if (b.type === 'appvol' && this.value === 'mute' && !b.toggle) { b.toggle = true; b.labelOn = b.labelOn || b.label; } setDirty(); };
+  if ($('audSel')) {
+    get('/audioapps', function (list) {
+      var common = ['Discord', 'acs', 'chrome', 'Spotify', 'msedge', 'obs64'];
+      var seen = {}, all = [];
+      (list || []).concat(common).forEach(function (x) { var k = String(x).toLowerCase(); if (!seen[k]) { seen[k] = 1; all.push(x); } });
+      $('audSel').innerHTML = '<option value="">— Elegi un programa —</option>' + all.map(function (x) {
+        return '<option value="' + esc(x) + '"' + (String(b.val).toLowerCase() === String(x).toLowerCase() ? ' selected' : '') + '>' + esc(x) + '</option>';
+      }).join('');
+    });
+    $('audSel').onchange = function () { if (this.value) { b.val = this.value; $('fVal').value = this.value; if (!b.args) b.args = 'mute'; setDirty(); } };
+  }
   if ($('appFilter')) $('appFilter').oninput = function () { $('appSel').innerHTML = appOptions(this.value); };
   if ($('appSel')) $('appSel').onchange = function () { if (this.value) useApp('/editor/app?path=' + encodeURIComponent(this.value), b); };
   if ($('progSel')) $('progSel').onchange = function () {

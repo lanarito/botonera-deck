@@ -3,21 +3,26 @@
 // - Lee los botones de botones.json (fuente unica; se puede editar sin recompilar).
 // - Mantiene "adb reverse tcp:8790" solo, y se recupera del replug (reconnect + reabrir pagina).
 // - /press?id=xxx ejecuta la accion del boton: launch (programa), url (pagina), key (teclas), vol (volumen).
-// Compilar: csc /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /out:Botonera.exe Botonera.cs
+// Compilar: csc /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:Botonera.exe Botonera.cs
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web.Script.Serialization;
+using System.Windows.Forms;
 
 class Botonera
 {
     const int Port = 8790;
+    static bool LanEnabled = false;
     static readonly string Dir = AppDomain.CurrentDomain.BaseDirectory;
     static readonly string WebDir = Path.Combine(Dir, "web");
     static readonly string LogPath = Path.Combine(Dir, "estado_botonera.txt");
@@ -205,6 +210,148 @@ class Botonera
         try { var e = Endpoint(); float l; bool m; e.GetMasterVolumeLevelScalar(out l); e.GetMute(out m); return Math.Round(l * 100) + "%" + (m ? " (MUTE)" : ""); }
         catch (Exception x) { return "? " + x.Message; }
     }
+
+    // ===== Core Audio por programa (IAudioSessionManager2) =====
+    [Guid("77AA99A0-1BD6-484F-8BC7-2C654C9A9B6F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IAudioSessionManager2
+    {
+        int GetAudioSessionControl(IntPtr g, uint f, out IntPtr sc);
+        int GetSimpleAudioVolume(IntPtr g, uint f, out IntPtr sv);
+        int GetSessionEnumerator(out IAudioSessionEnumerator se);
+    }
+    [Guid("E2F5BB11-0570-40CA-ACDD-3AA01277DEE8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IAudioSessionEnumerator
+    {
+        int GetCount(out int count);
+        int GetSession(int index, [MarshalAs(UnmanagedType.IUnknown)] out object session);
+    }
+    [Guid("BFB7FF88-7239-4FC9-8FA2-07C950BE9C6D"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IAudioSessionControl2
+    {
+        int GetState(out int state);
+        int GetDisplayName([MarshalAs(UnmanagedType.LPWStr)] out string name);
+        int SetDisplayName([MarshalAs(UnmanagedType.LPWStr)] string name, ref Guid g);
+        int GetIconPath([MarshalAs(UnmanagedType.LPWStr)] out string path);
+        int SetIconPath([MarshalAs(UnmanagedType.LPWStr)] string path, ref Guid g);
+        int GetGroupingParam(out Guid g);
+        int SetGroupingParam(ref Guid g, ref Guid e);
+        int RegisterAudioSessionNotification(IntPtr c);
+        int UnregisterAudioSessionNotification(IntPtr c);
+        int GetSessionIdentifier([MarshalAs(UnmanagedType.LPWStr)] out string id);
+        int GetSessionInstanceIdentifier([MarshalAs(UnmanagedType.LPWStr)] out string id);
+        int GetProcessId(out uint pid);
+        int IsSystemSoundsSession();
+        int SetDuckingPreference([MarshalAs(UnmanagedType.Bool)] bool optOut);
+    }
+    [Guid("87CE5498-68D6-44E5-9215-6DA47EF883D8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface ISimpleAudioVolume
+    {
+        int SetMasterVolume(float level, ref Guid g);
+        int GetMasterVolume(out float level);
+        int SetMute([MarshalAs(UnmanagedType.Bool)] bool mute, ref Guid g);
+        int GetMute([MarshalAs(UnmanagedType.Bool)] out bool mute);
+    }
+
+    static bool MatchProc(string procName, string filter)
+    {
+        if (string.IsNullOrEmpty(filter)) return true;
+        string f = filter.Trim();
+        if (f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) f = f.Substring(0, f.Length - 4);
+        return string.Equals(procName, f, StringComparison.OrdinalIgnoreCase) ||
+               procName.IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    static void ForEachAppSession(string filter, Action<ISimpleAudioVolume, string> fn)
+    {
+        var en = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+        IMMDevice d; Marshal.ThrowExceptionForHR(en.GetDefaultAudioEndpoint(0, 1, out d));
+        Guid g = typeof(IAudioSessionManager2).GUID; object o;
+        Marshal.ThrowExceptionForHR(d.Activate(ref g, 23, IntPtr.Zero, out o));
+        var mgr = (IAudioSessionManager2)o;
+        IAudioSessionEnumerator se;
+        Marshal.ThrowExceptionForHR(mgr.GetSessionEnumerator(out se));
+        int n; se.GetCount(out n);
+        for (int i = 0; i < n; i++)
+        {
+            object sess = null;
+            try
+            {
+                if (se.GetSession(i, out sess) != 0 || sess == null) continue;
+                var sc2 = sess as IAudioSessionControl2;
+                var sav = sess as ISimpleAudioVolume;
+                if (sc2 == null || sav == null) continue;
+                uint pid = 0; sc2.GetProcessId(out pid);
+                if (pid == 0) continue;
+                string pname = "";
+                try { pname = Process.GetProcessById((int)pid).ProcessName; } catch { continue; }
+                if (MatchProc(pname, filter)) fn(sav, pname);
+            }
+            catch { }
+            finally { if (sess != null && Marshal.IsComObject(sess)) try { Marshal.ReleaseComObject(sess); } catch { } }
+        }
+    }
+
+    static void AppVolume(string proc, string dir)
+    {
+        if (string.IsNullOrEmpty(proc)) return;
+        string d = string.IsNullOrEmpty(dir) ? "mute" : dir.ToLowerInvariant();
+        Guid ctx = Guid.Empty;
+        int hits = 0;
+        bool? targetMute = null;
+        float lastLvl = 0f; bool lastMute = false;
+        try
+        {
+            ForEachAppSession(proc, (sav, pname) =>
+            {
+                hits++;
+                if (d == "mute")
+                {
+                    bool m; sav.GetMute(out m);
+                    if (!targetMute.HasValue) targetMute = !m;
+                    sav.SetMute(targetMute.Value, ref ctx);
+                    lastMute = targetMute.Value;
+                    sav.GetMasterVolume(out lastLvl);
+                }
+                else
+                {
+                    float l; sav.GetMasterVolume(out l);
+                    l = Math.Max(0f, Math.Min(1f, l + (d == "up" ? 0.06f : -0.06f)));
+                    sav.SetMasterVolume(l, ref ctx);
+                    if (d == "up" && l > 0f) sav.SetMute(false, ref ctx);
+                    lastLvl = l;
+                    sav.GetMute(out lastMute);
+                }
+            });
+            Log("appvol " + proc + " " + d + " -> " + (hits == 0 ? "sin sesion activa" : (Math.Round(lastLvl * 100) + "%" + (lastMute ? " (MUTE)" : "") + " [" + hits + "]")));
+        }
+        catch (Exception e) { Log("appvol err " + proc + ": " + e.Message); }
+    }
+
+    static bool? IsAppMuted(string proc)
+    {
+        if (string.IsNullOrEmpty(proc)) return null;
+        int hits = 0; bool anyUnmuted = false;
+        try
+        {
+            ForEachAppSession(proc, (sav, pname) =>
+            {
+                hits++;
+                bool m; sav.GetMute(out m);
+                if (!m) anyUnmuted = true;
+            });
+            return hits == 0 ? (bool?)null : !anyUnmuted;
+        }
+        catch { return null; }
+    }
+
+    static List<string> ActiveAudioApps()
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try { ForEachAppSession("", (sav, pname) => { if (!string.IsNullOrEmpty(pname)) set.Add(pname); }); } catch { }
+        var list = new List<string>(set);
+        list.Sort(StringComparer.OrdinalIgnoreCase);
+        return list;
+    }
     static void Launch(string path, string args)
     {
         try
@@ -229,21 +376,32 @@ class Botonera
             case "url":    OpenUrl(a.val); break;
             case "key":    SendKeys(a.val); break;
             case "vol":    Volume(a.val); break;
+            case "appvol": AppVolume(a.val, a.args); break;
         }
         lock (Lk) { if (Toggles.ContainsKey(id)) Toggles[id] = !Toggles[id]; }
     }
 
     static string StateJson()
     {
-        // Los toggles de "vol mute" muestran el estado REAL de Windows (si se silencia desde la PC, la tecla se entera).
+        // Los toggles de "vol mute" y "appvol ... mute" muestran el estado REAL de Windows.
         bool? muted = null; bool asked = false;
+        var appMuteCache = new Dictionary<string, bool?>(StringComparer.OrdinalIgnoreCase);
         lock (Lk)
         {
             foreach (var id in new List<string>(Toggles.Keys))
             {
-                Act a; if (!Buttons.TryGetValue(id, out a) || a.type != "vol" || a.val != "mute") continue;
-                if (!asked) { muted = IsMuted(); asked = true; }
-                if (muted.HasValue) Toggles[id] = muted.Value;
+                Act a; if (!Buttons.TryGetValue(id, out a)) continue;
+                if (a.type == "vol" && a.val == "mute")
+                {
+                    if (!asked) { muted = IsMuted(); asked = true; }
+                    if (muted.HasValue) Toggles[id] = muted.Value;
+                }
+                else if (a.type == "appvol" && (string.IsNullOrEmpty(a.args) || a.args.Equals("mute", StringComparison.OrdinalIgnoreCase)))
+                {
+                    bool? am;
+                    if (!appMuteCache.TryGetValue(a.val, out am)) { am = IsAppMuted(a.val); appMuteCache[a.val] = am; }
+                    if (am.HasValue) Toggles[id] = am.Value;
+                }
             }
         }
         lock (Lk)
@@ -280,7 +438,7 @@ class Botonera
                 // anti-doble: el mismo boton dos veces en < 300 ms es un toque repetido por la tablet, no del usuario
                 // (el volumen +/- NO se filtra: tocarlo rapido varias veces es a proposito)
                 bool dup = false;
-                Act pa; bool isVolStep = Buttons.TryGetValue(id, out pa) && pa.type == "vol" && pa.val != "mute";
+                Act pa; bool isVolStep = Buttons.TryGetValue(id, out pa) && ((pa.type == "vol" && pa.val != "mute") || (pa.type == "appvol" && pa.args != "" && !pa.args.Equals("mute", StringComparison.OrdinalIgnoreCase)));
                 if (!isVolStep) lock (Lk) { DateTime prev; dup = LastPress.TryGetValue(id, out prev) && (DateTime.Now - prev).TotalMilliseconds < 300; LastPress[id] = DateTime.Now; }
                 if (dup) Log("ignorado doble toque: " + id);
                 else if (id.Length > 0) { Log("toque: " + id); DoAction(id); }
@@ -288,6 +446,24 @@ class Botonera
                 return;
             }
             if (path == "/state") { Send(c.Response, 200, "application/json", Encoding.UTF8.GetBytes(StateJson())); return; }
+            if (path == "/audioapps") { SendJs(c, ActiveAudioApps()); return; }
+            if (path == "/netinfo")
+            {
+                string ip = GetLocalIp();
+                SendJs(c, new Dictionary<string, object> {
+                    { "lan", LanEnabled },
+                    { "ip", ip },
+                    { "port", Port },
+                    { "url", "http://" + ip + ":" + Port + "/index.html" }
+                });
+                return;
+            }
+            if (path == "/netenable")
+            {
+                bool ok = EnableLanAndRestart();
+                SendJs(c, new Dictionary<string, object> { { "ok", ok } });
+                return;
+            }
             if (path.StartsWith("/editor/")) { Editor(c, path); return; }
             if (path == "/config")
             {
@@ -954,25 +1130,87 @@ class Botonera
         catch { return ""; }
     }
 
+    static Mutex AppMutex;
+    static HttpListener Listener;
+
+    static string GetLocalIp()
+    {
+        try
+        {
+            using (var s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                s.Connect("8.8.8.8", 65530);
+                var ep = s.LocalEndPoint as IPEndPoint;
+                if (ep != null) return ep.Address.ToString();
+            }
+        }
+        catch { }
+        try
+        {
+            foreach (var a in Dns.GetHostAddresses(Dns.GetHostName()))
+                if (a.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a)) return a.ToString();
+        }
+        catch { }
+        return "127.0.0.1";
+    }
+
+    static bool EnableLanAndRestart()
+    {
+        try
+        {
+            string cmds = "/c netsh http add urlacl url=http://+:" + Port + "/ user=Everyone & " +
+                          "netsh advfirewall firewall delete rule name=\"BotoneraDeck\" & " +
+                          "netsh advfirewall firewall add rule name=\"BotoneraDeck\" dir=in action=allow protocol=TCP localport=" + Port;
+            var p = Process.Start(new ProcessStartInfo("cmd.exe", cmds) { Verb = "runas", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
+            if (p == null) return false;
+            p.WaitForExit(15000);
+            if (p.ExitCode != 0) return false;
+            Log("Red WiFi/Firewall habilitada. Reiniciando server...");
+            new Thread(() => {
+                Thread.Sleep(400);
+                try { if (Listener != null) Listener.Stop(); } catch { }
+                try { if (AppMutex != null) { AppMutex.ReleaseMutex(); AppMutex.Dispose(); AppMutex = null; } } catch { }
+                try { Process.Start(Application.ExecutablePath); } catch { }
+                Environment.Exit(0);
+            }).Start();
+            return true;
+        }
+        catch (Exception e) { Log("netenable err: " + e.Message); return false; }
+    }
+
     static void Main()
     {
         bool created;
-        using (var m = new Mutex(true, "Local\\BotoneraTabletLanaro", out created))
+        AppMutex = new Mutex(true, "Local\\BotoneraTabletLanaro", out created);
+        if (!created) return;
+        LoadConfig(true);
+        Listener = new HttpListener();
+        try
         {
-            if (!created) return;
-            LoadConfig(true);
-            var l = new HttpListener();
-            l.Prefixes.Add("http://localhost:" + Port + "/");
-            l.Prefixes.Add("http://127.0.0.1:" + Port + "/");
-            l.Start();
-            Log("Iniciada en puerto " + Port + ".");
-            var t = new Thread(AdbLoop) { IsBackground = true }; t.Start();
-            new Thread(DiscordFirstRun) { IsBackground = true }.Start();   // volante + servidores de Discord, solos la primera vez
-            while (true)
+            Listener.Prefixes.Add("http://+:" + Port + "/");
+            Listener.Start();
+            LanEnabled = true;
+        }
+        catch
+        {
+            try { Listener.Close(); } catch { }
+            Listener = new HttpListener();
+            Listener.Prefixes.Add("http://localhost:" + Port + "/");
+            Listener.Prefixes.Add("http://127.0.0.1:" + Port + "/");
+            Listener.Start();
+            LanEnabled = false;
+        }
+        Log("Iniciada en puerto " + Port + (LanEnabled ? " (WiFi/LAN + USB, IP " + GetLocalIp() + ")" : " (solo localhost/USB; falta urlacl para WiFi)") + ".");
+        var t = new Thread(AdbLoop) { IsBackground = true }; t.Start();
+        new Thread(DiscordFirstRun) { IsBackground = true }.Start();   // volante + servidores de Discord, solos la primera vez
+        while (true)
+        {
+            try
             {
-                var c = l.GetContext();
+                var c = Listener.GetContext();
                 ThreadPool.QueueUserWorkItem(delegate { Handle(c); });
             }
+            catch { break; }
         }
     }
 }

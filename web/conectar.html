@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Conectar Celular o Tablet - Botonera Deck</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: #000; color: #e6e9ee; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  .card { max-width: 520px; width: 100%; background: #0b0c10; border: 1px solid #1e222b; border-radius: 18px;
+    padding: 26px 28px; box-shadow: 0 0 36px -8px rgba(88,101,242,.45); text-align: center; }
+  h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: 1px; color: #fff; }
+  .sub { color: #8a929d; font-size: 14px; margin-bottom: 18px; line-height: 1.45; }
+  .badge { display: inline-block; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+  .badge.ok { background: rgba(34,204,68,.15); color: #3d7; border: 1px solid rgba(34,204,68,.4); }
+  .badge.warn { background: rgba(255,187,51,.14); color: #fc4; border: 1px solid rgba(255,187,51,.4); }
+  #qrWrap { display: inline-block; padding: 14px; background: #fff; border-radius: 14px; margin: 6px 0 14px; }
+  #qr { display: block; image-rendering: pixelated; }
+  .urlBox { background: #14171f; border: 1px solid #2b303c; border-radius: 10px; padding: 11px 14px; font-family: Consolas, monospace;
+    font-size: 16px; color: #fff; word-break: break-all; margin-bottom: 14px; }
+  .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+  button, a.btn { font: inherit; font-size: 14px; font-weight: 600; color: #e6e9ee; background: #1c1f26; border: 1px solid #2c313a;
+    border-radius: 9px; padding: 9px 16px; cursor: pointer; text-decoration: none; }
+  button:hover, a.btn:hover { border-color: #5865F2; }
+  button.main { background: #5865F2; border-color: #5865F2; color: #fff; }
+  .tips { text-align: left; font-size: 13px; color: #9aa1aa; background: #111319; border-radius: 10px; padding: 12px 14px; line-height: 1.55; }
+  .tips b { color: #fff; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>CONECTAR CELU O TABLET</h1>
+  <div class="sub">Escaneá el QR con la cámara (mismo WiFi que la PC) o escribí la dirección en Chrome.</div>
+  <div id="status" class="badge warn">Consultando red...</div><br>
+  <div id="qrWrap"><canvas id="qr" width="220" height="220"></canvas></div>
+  <div class="urlBox" id="urlBox">http://...</div>
+  <div class="btns">
+    <button class="main" id="btnEnable" style="display:none">Habilitar WiFi / Firewall</button>
+    <button id="btnCopy">Copiar dirección</button>
+    <a class="btn" href="/editor.html">Abrir Editor</a>
+    <a class="btn" href="/index.html">Probar acá</a>
+  </div>
+  <div class="tips">
+    <b>En el celu / tablet (ej. Samsung A51):</b><br>
+    1. Conectalo al <b>mismo WiFi</b> que la PC.<br>
+    2. Escaneá el QR y abrilo en <b>Chrome</b>.<br>
+    3. Tocá <b>⋮ → Agregar a pantalla principal / Instalar aplicación</b> para que abra en pantalla completa sin barras.<br>
+    <b>En la Galaxy Tab 2 (USB):</b> sigue andando directo por cable como siempre.
+  </div>
+</div>
+
+<script>
+// Generador QR compacto (Byte mode, ECC-L, versiones 1-6) sin dependencias externas
+var QR = (function () {
+  var EXP = new Array(512), LOG = new Array(256);
+  for (var i = 0; i < 8; i++) EXP[i] = 1 << i;
+  for (var i = 8; i < 256; i++) EXP[i] = EXP[i - 4] ^ EXP[i - 5] ^ EXP[i - 6] ^ EXP[i - 8];
+  for (var i = 0; i < 255; i++) { EXP[i + 255] = EXP[i]; LOG[EXP[i]] = i; }
+  function mul(a, b) { return (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]]; }
+  function rsGen(n) {
+    var g = [1];
+    for (var i = 0; i < n; i++) {
+      var ng = new Array(g.length + 1);
+      for (var k = 0; k < ng.length; k++) ng[k] = 0;
+      for (var j = 0; j < g.length; j++) { ng[j] ^= g[j]; ng[j + 1] ^= mul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
+  }
+  function rsEcc(data, ecLen) {
+    var g = rsGen(ecLen), res = data.slice();
+    for (var i = 0; i < ecLen; i++) res.push(0);
+    for (var i = 0; i < data.length; i++) {
+      var f = res[i];
+      if (f !== 0) for (var j = 0; j < g.length; j++) res[i + j] ^= mul(g[j], f);
+    }
+    return res.slice(data.length);
+  }
+  // Capacidades ECC-L (totalDataBytes, ecBytesPerBlock, numBlocks): versiones 1..6
+  var SPEC = [
+    null,
+    [19, 7, 1],
+    [34, 10, 1],
+    [55, 15, 1],
+    [80, 20, 1],
+    [108, 26, 1],
+    [136, 18, 2]
+  ];
+  var ALIGN = [null, [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34]];
+
+  function make(text) {
+    var bytes = [];
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charCodeAt(i);
+      if (c < 128) bytes.push(c);
+      else bytes.push(63);
+    }
+    var ver = 1;
+    while (ver < SPEC.length && bytes.length + 2 > SPEC[ver][0]) ver++;
+    if (ver >= SPEC.length) ver = SPEC.length - 1;
+    var sp = SPEC[ver], dataCap = sp[0], ecLen = sp[1], blocks = sp[2];
+
+    var bits = [];
+    function pushBits(val, len) { for (var b = len - 1; b >= 0; b--) bits.push((val >> b) & 1); }
+    pushBits(4, 4); // Byte mode
+    pushBits(bytes.length, 8);
+    for (var i = 0; i < bytes.length; i++) pushBits(bytes[i], 8);
+    pushBits(0, Math.min(4, dataCap * 8 - bits.length));
+    while (bits.length % 8 !== 0) bits.push(0);
+    var data = [];
+    for (var i = 0; i < bits.length; i += 8) {
+      var b = 0; for (var j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+      data.push(b);
+    }
+    var pad = [0xec, 0x11], pi = 0;
+    while (data.length < dataCap) { data.push(pad[pi]); pi ^= 1; }
+
+    var bSize = Math.floor(dataCap / blocks), dBlocks = [], eBlocks = [];
+    for (var b = 0; b < blocks; b++) {
+      var blk = data.slice(b * bSize, (b + 1) * bSize);
+      dBlocks.push(blk); eBlocks.push(rsEcc(blk, ecLen));
+    }
+    var code = [];
+    for (var i = 0; i < bSize; i++) for (var b = 0; b < blocks; b++) code.push(dBlocks[b][i]);
+    for (var i = 0; i < ecLen; i++) for (var b = 0; b < blocks; b++) code.push(eBlocks[b][i]);
+
+    var N = ver * 4 + 17;
+    var m = [], resv = [];
+    for (var r = 0; r < N; r++) { m.push(new Array(N)); resv.push(new Array(N)); }
+    function setF(r, c, v) { if (r >= 0 && r < N && c >= 0 && c < N) { m[r][c] = v ? 1 : 0; resv[r][c] = true; } }
+    function finder(r0, c0) {
+      for (var r = -1; r <= 7; r++) for (var c = -1; c <= 7; c++) {
+        var on = (r >= 0 && r <= 6 && c >= 0 && c <= 6) && (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
+        setF(r0 + r, c0 + c, on);
+      }
+    }
+    finder(0, 0); finder(0, N - 7); finder(N - 7, 0);
+    var al = ALIGN[ver];
+    for (var i = 0; i < al.length; i++) for (var j = 0; j < al.length; j++) {
+      var ar = al[i], ac = al[j];
+      if (resv[ar][ac]) continue;
+      for (var r = -2; r <= 2; r++) for (var c = -2; c <= 2; c++)
+        setF(ar + r, ac + c, Math.max(Math.abs(r), Math.abs(c)) !== 1);
+    }
+    for (var i = 8; i < N - 8; i++) { setF(6, i, i % 2 === 0); setF(i, 6, i % 2 === 0); }
+    setF(N - 8, 8, 1);
+    for (var i = 0; i < 9; i++) { if (i !== 6) { resv[8][i] = true; resv[i][8] = true; } }
+    for (var i = 0; i < 8; i++) { resv[8][N - 1 - i] = true; resv[N - 1 - i][8] = true; }
+
+    var bitIdx = 0, totalBits = code.length * 8, up = true;
+    for (var col = N - 1; col > 0; col -= 2) {
+      if (col === 6) col--;
+      for (var rowIdx = 0; rowIdx < N; rowIdx++) {
+        var r = up ? N - 1 - rowIdx : rowIdx;
+        for (var dx = 0; dx < 2; dx++) {
+          var c = col - dx;
+          if (resv[r][c]) continue;
+          var bit = bitIdx < totalBits ? ((code[bitIdx >> 3] >> (7 - (bitIdx & 7))) & 1) : 0;
+          bitIdx++;
+          if ((r + c) % 2 === 0) bit ^= 1; // Mask 0
+          m[r][c] = bit;
+        }
+      }
+      up = !up;
+    }
+    // Format info: ECC-L (01), Mask 0 (000) -> 01000 + BCH + XOR 101010000010010 = 111011111000100 (0x77c4)
+    var fmt = 0x77c4;
+    for (var i = 0; i < 15; i++) {
+      var v = (fmt >> i) & 1;
+      if (i < 6) m[i][8] = v;
+      else if (i < 8) m[i + 1][8] = v;
+      else m[N - 15 + i][8] = v;
+      if (i < 8) m[8][N - 1 - i] = v;
+      else if (i < 9) m[8][15 - i] = v;
+      else m[8][14 - i] = v;
+    }
+    return m;
+  }
+
+  return {
+    draw: function (canvas, text) {
+      var m = make(text), n = m.length, scale = Math.floor(220 / (n + 4)), size = (n + 4) * scale;
+      canvas.width = size; canvas.height = size;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#000';
+      for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (m[r][c]) ctx.fillRect((c + 2) * scale, (r + 2) * scale, scale, scale);
+    }
+  };
+})();
+
+var curUrl = '';
+fetch('/netinfo', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+  curUrl = d.url;
+  document.getElementById('urlBox').textContent = curUrl;
+  QR.draw(document.getElementById('qr'), curUrl);
+  var st = document.getElementById('status');
+  if (d.lan) {
+    st.className = 'badge ok';
+    st.textContent = 'WiFi / Red local ACTIVA (' + d.ip + ':' + d.port + ')';
+  } else {
+    st.className = 'badge warn';
+    st.textContent = 'Falta habilitar permiso WiFi / Firewall en Windows';
+    document.getElementById('btnEnable').style.display = '';
+  }
+});
+
+document.getElementById('btnCopy').onclick = function () {
+  if (navigator.clipboard) navigator.clipboard.writeText(curUrl);
+  this.textContent = '¡Copiada!';
+  var b = this; setTimeout(function () { b.textContent = 'Copiar dirección'; }, 1500);
+};
+document.getElementById('btnEnable').onclick = function () {
+  var b = this; b.disabled = true; b.textContent = 'Aceptá el cartel de Windows...';
+  fetch('/netenable').then(function (r) { return r.json(); }).then(function (d) {
+    if (d.ok) setTimeout(function () { location.reload(); }, 1800);
+    else { b.disabled = false; b.textContent = 'Habilitar WiFi / Firewall'; alert('No se pudo habilitar (cancelado o sin permisos).'); }
+  });
+};
+</script>
+</body>
+</html>
+

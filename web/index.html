@@ -2,14 +2,22 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="/manifest.json">
 <title>Botonera</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
   html, body { margin: 0; height: 100%; overflow: hidden; font-family: Roboto, Arial, sans-serif; }
   body {
     --size: 126px;
+    --gap: 30px;
+    --dgap: 22px;
+    --lbl: 12px;
+    --tabsH: 58px;
     background: #000;   /* negro total, como apagado: resaltan las luces */
   }
   .screw { position: absolute; width: 22px; height: 22px; border-radius: 50%;
@@ -18,13 +26,15 @@
   .screw::after { content: ""; position: absolute; left: 4px; right: 4px; top: 10px; height: 2px; background: #1a1c20;
     box-shadow: 0 1px 0 rgba(255,255,255,.18); transform: rotate(35deg); }
 
-  #tabs { position: absolute; top: 0; left: 0; right: 0; height: 58px; display: flex; gap: 10px; align-items: center; justify-content: center; z-index: 3; }
-  .tab { padding: 7px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d;
+  #tabs { position: absolute; top: 0; left: 0; right: 0; height: var(--tabsH); display: flex; gap: 10px; align-items: center; justify-content: center; z-index: 3; padding: 0 8px; overflow-x: auto; }
+  .tab { padding: 7px 22px; border-radius: 12px; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; color: #8a929d; white-space: nowrap;
     background: #07080a; border: 1px solid #1c1f25; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
   .tab.active { color: #fff; border-color: #5865F2; box-shadow: 0 0 16px -2px #5865F2, inset 0 0 12px -5px #5865F2; text-shadow: 0 0 8px #5865F2; }
+  body.compact .tab { padding: 5px 12px; font-size: 12px; border-radius: 10px; letter-spacing: 1px; }
 
-  #pages { position: absolute; top: 58px; left: 0; right: 0; bottom: 0; overflow-y: auto; }
+  #pages { position: absolute; top: var(--tabsH); left: 0; right: 0; bottom: 0; overflow-y: auto; }
   .page { display: none; padding: 16px 22px 24px; }
+  body.compact .page { padding: 8px 12px 16px; }
   .page.active { display: block; }
   /* deslizar entre paginas: entrada corta desde el lado del gesto */
   html, body { touch-action: none; }
@@ -34,8 +44,8 @@
   @keyframes inR { from { transform: translateX(-60px); opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inU { from { transform: translateY(50px);  opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inD { from { transform: translateY(-50px); opacity: .2; } to { transform: none; opacity: 1; } }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: 30px; justify-content: center; align-content: start; }
-  .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: 22px; justify-content: center; margin: 26px auto 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, var(--size)); gap: var(--gap); justify-content: center; align-content: start; }
+  .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: var(--dgap); justify-content: center; margin: 20px auto 0; }
   .dpad .up { grid-column: 2; grid-row: 1; }
   .dpad .left { grid-column: 1; grid-row: 2; }
   .dpad .right { grid-column: 3; grid-row: 2; }
@@ -68,9 +78,9 @@
     will-change: opacity; transform: translateZ(0); }
   .face svg { position: relative; width: 46%; height: 46%; fill: var(--c); }
   .face img.ico { position: relative; width: 54%; height: 54%; object-fit: contain; }
-  .lbl { position: relative; margin-top: 7px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
-    color: #9aa1aa; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9); text-align: center; }
-  .lamp { position: absolute; top: 12px; left: 50%; width: 30px; height: 6px; margin-left: -15px; border-radius: 3px;
+  .lbl { position: relative; margin-top: 6px; font-size: var(--lbl); font-weight: 700; letter-spacing: 1px;
+    color: #9aa1aa; text-shadow: 0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.9); text-align: center; padding: 0 4px; line-height: 1.1; }
+  .lamp { position: absolute; top: 10%; left: 50%; width: 26%; height: 6px; margin-left: -13%; border-radius: 3px;
     background: #1b1d21; box-shadow: inset 0 1px 2px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06); }
 
   .key.pressed .cap { transform: translate3d(0,7px,0); }
@@ -138,6 +148,49 @@
     return k;
   }
 
+  var curSz = 126, curGap = 30, curPadX = 44;
+  function calcLayout() {
+    var w = window.innerWidth || document.documentElement.clientWidth || 800;
+    var h = window.innerHeight || document.documentElement.clientHeight || 600;
+    var sz = 126, gap = 30, dgap = 22, lbl = 12, tabsH = 58, padX = 44, compact = false;
+    if (w < 560) {
+      compact = true; tabsH = 46; padX = 24; gap = 14; dgap = 12;
+      sz = Math.floor((w - padX - gap * 2) / 3);
+      if (sz > 112) sz = 112;
+      if (sz < 74) sz = 74;
+      lbl = sz < 92 ? 10 : 11;
+    } else if (h < 520) {
+      compact = true; tabsH = 44; padX = 24; gap = 14; dgap = 10;
+      sz = Math.floor((h - tabsH - 28 - gap) / 2);
+      if (sz > 110) sz = 110;
+      if (sz < 70) sz = 70;
+      lbl = sz < 88 ? 10 : 11;
+    } else if (w < 780) {
+      gap = 20; dgap = 16; padX = 36;
+      sz = Math.floor((w - padX - gap * 3) / 4);
+      if (sz > 116) sz = 116;
+      if (sz < 88) sz = 88;
+      lbl = 11;
+    }
+    curSz = sz; curGap = gap; curPadX = padX;
+    var st = document.body.style;
+    st.setProperty('--size', sz + 'px');
+    st.setProperty('--gap', gap + 'px');
+    st.setProperty('--dgap', dgap + 'px');
+    st.setProperty('--lbl', lbl + 'px');
+    st.setProperty('--tabsH', tabsH + 'px');
+    document.body.className = compact ? 'compact' : '';
+  }
+
+  function fillGrid(grid, normalCount) {
+    var old = grid.querySelectorAll('.key.empty');
+    for (var j = 0; j < old.length; j++) grid.removeChild(old[j]);
+    var cols = Math.max(1, Math.floor((window.innerWidth - curPadX + curGap) / (curSz + curGap)));
+    var pad = Math.ceil(normalCount / cols) * cols;
+    for (var i = normalCount; i < pad; i++) grid.appendChild(makeKey(null, true));
+  }
+
+  var gridsMeta = [];
   function makePage(page) {
     var pageEl = document.createElement('div'); pageEl.className = 'page';
     var grid = document.createElement('div'); grid.className = 'grid';
@@ -145,7 +198,10 @@
     var btns = page.buttons || [];
     for (i = 0; i < btns.length; i++) { b = btns[i]; if (b.dpad) dpadBtns.push(b); else normal.push(b); }
     for (i = 0; i < normal.length; i++) grid.appendChild(makeKey(normal[i], false));
-    if (dpadBtns.length === 0) { var cols = Math.max(1, Math.floor((window.innerWidth - 44 + 30) / (126 + 30))); var pad = Math.ceil(normal.length / cols) * cols; for (i = normal.length; i < pad; i++) grid.appendChild(makeKey(null, true)); }
+    if (dpadBtns.length === 0) {
+      fillGrid(grid, normal.length);
+      gridsMeta.push({ grid: grid, count: normal.length });
+    }
     pageEl.appendChild(grid);
     if (dpadBtns.length) {
       var dp = document.createElement('div'); dp.className = 'dpad';
@@ -252,11 +308,20 @@
   document.addEventListener('touchend', goFS, { once: true });
   document.addEventListener('click', goFS, { once: true });
 
+  function onResize() {
+    calcLayout();
+    for (var i = 0; i < gridsMeta.length; i++) fillGrid(gridsMeta[i].grid, gridsMeta[i].count);
+  }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', function () { setTimeout(onResize, 120); });
+
   // arrancar: traer las paginas desde /config y armarlas TODAS una sola vez
+  calcLayout();
   xhrGet('/config', function (err, txt) {
     var cfg; try { cfg = JSON.parse(txt); } catch (e) { cfg = null; }
     pages = (cfg && cfg.pages) ? cfg.pages : [];
     pagesEl.innerHTML = '';
+    gridsMeta = [];
     for (var i = 0; i < pages.length; i++) pagesEl.appendChild(makePage(pages[i]));
     buildTabs();
     var hp = parseInt((location.hash || '').replace('#p', ''), 10);

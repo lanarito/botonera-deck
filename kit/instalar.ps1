@@ -52,6 +52,9 @@ try {
   Remove-Item (Join-Path $dst 'Botonera - Editar botones.lnk') -ErrorAction SilentlyContinue
   $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - EDITOR de botones.url'))
   $a.TargetPath = 'http://localhost:8790/editor.html'; $a.Save()
+  $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - Conectar Celu o Tablet (QR).url'))
+  $a.TargetPath = 'http://localhost:8790/conectar.html'; $a.Save()
+  if (Test-Path (Join-Path $PSScriptRoot 'Manual - Botonera Deck.pdf')) { Copy-Item (Join-Path $PSScriptRoot 'Manual - Botonera Deck.pdf') $dst -Force }
   $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - botones.json (avanzado).lnk'))
   $a.TargetPath = 'notepad.exe'; $a.Arguments = '"' + (Join-Path $dst 'botones.json') + '"'; $a.Save()
   $a = $sh.CreateShortcut((Join-Path $dst 'Botonera - Carpeta de iconos.lnk'))
@@ -79,9 +82,11 @@ try {
 
   Paso 'Arrancando la botonera ...'
   Start-Process $exe -WorkingDirectory $dst
+  Start-Sleep -Milliseconds 1200
+  Start-Process 'http://localhost:8790/conectar.html'
   Write-Host ''
   Write-Host 'INSTALACION TERMINADA.' -ForegroundColor Green
-  Write-Host 'Todo quedo en la carpeta C:\BotoneraDeck (te la abro ahora). Segui "Botonera - Guia" para la tablet y las teclas de AC.'
+  Write-Host 'Todo quedo en la carpeta C:\BotoneraDeck (te la abro ahora) y se abrio el QR para conectar tu celu o tablet por WiFi.'
   Start-Process explorer.exe $dst
 } catch {
   Write-Host ''

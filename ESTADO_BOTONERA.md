@@ -50,7 +50,7 @@ Botonera táctil estilo **Stream Deck** en una **tablet Samsung Galaxy Tab 2 (GT
 4) Túnel: adb reverse tcp:8790 tcp:8790
 5) Abrir en la tablet (Jelly): adb shell am start -a android.intent.action.VIEW -d "http://localhost:8790/index.html" -n org.lineageos.jelly/.MainActivity
 ```
-Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /out:Botonera.exe Botonera.cs`
+Compilar Botonera.exe: `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:Botonera.exe Botonera.cs`
 (la `/r:System.Web.Extensions.dll` es para leer `botones.json` con `JavaScriptSerializer`.)
 
 ## 5. PENDIENTE
@@ -294,3 +294,16 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - Corre solo al arrancar (15 s) si botones.json no tiene servidores y no existe `discord_detectado.txt`; en el editor: `Actualizar mis servidores de Discord` (`/editor/discord`). El kit sale SIN servidores ni íconos dc_*.
 - VOLANTE: botón con `"auto": "volante"`; al arrancar se completa con el primer programa de volante instalado de `web/atajos.json > programas` (MOZA, G HUB, Simagic, Fanatec, Thrustmaster). Editor: desplegable Simracing en Abrir un programa (`/editor/programa?n=`).
 - Probado: en esta PC detectó los 9 servidores con logos; simulación de kit limpio de punta a punta OK. En el botones.json del usuario quedaron SUS nombres/logos de siempre (se restauró tras la prueba).
+
+## 21. [GEMINI — 2026-11-13] WiFi + QR + PWA + Responsive + Volumen por App + Kit ZIP + PDF ✅
+- **Conexión WiFi/LAN + QR + PWA (para Samsung A51 y cualquier celu/tablet):**
+  - `Botonera.cs`: intenta escuchar en `http://+:8790/` (WiFi/LAN + USB); si aún falta `netsh urlacl`, hace fallback a `localhost` sin fallar y expone `/netinfo` y `/netenable` (eleva `netsh http add urlacl` + regla de Firewall TCP 8790 y reinicia solo).
+  - `web/conectar.html`: página con IP local + **código QR generado offline** en `<canvas>` + botón 1-clic `Habilitar WiFi / Firewall` + instrucciones para instalar como app en Chrome.
+  - `web/manifest.json` + meta tags PWA en `web/index.html` para abrir en pantalla completa desde la pantalla de inicio del celu/tablet.
+- **Responsive automático (`web/index.html`, ES5 puro):** `calcLayout()` calcula `--size`, `--gap`, `--dgap`, `--lbl` y re-rellena huecos `LIBRE` al cargar y al rotar (`resize`/`orientationchange`), adaptándose a celular vertical (3 cols), celular horizontal (2 filas), tablet 7"/8" y Galaxy Tab 2.
+- **Volumen por programa (`appvol` via Core Audio `IAudioSessionManager2`):**
+  - Nuevo tipo `appvol` en `Botonera.cs` (`val` = proceso como `Discord`, `acs`, `chrome`, `Spotify`; `args` = `up` / `down` / `mute`), con lectura real de mute en `/state` y endpoint `/audioapps`.
+  - Integrado en `web/editor.html` (desplegable de apps activas + botón `Conectar Celu / QR` en el header).
+- **Sin ícono en la bandeja del reloj:** quitado por pedido del usuario; todo queda limpio en segundo plano y se accede por URL o desde los accesos directos en `C:\BotoneraDeck`.
+- **Instalador + Kit ZIP + Manual PDF:** `kit/armar_kit.ps1` y `kit/instalar.ps1` actualizados (incluyen `conectar.html`, `manifest.json` y `Manual - Botonera Deck.pdf`; al finalizar la instalación abre `conectar.html` con el QR). Generado `BotoneraDeck-Kit.zip` (282 KB) en el Escritorio.
+- **Pendiente al ir al simu / probar Samsung A51:** `git pull` en la PC del simu (o instalar desde el `.zip`), abrir `http://localhost:8790/conectar.html`, tocar `Habilitar WiFi / Firewall` una vez, y escanear el QR con el A51. Queda para después el auto-updater contra GitHub Releases.
