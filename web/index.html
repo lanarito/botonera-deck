@@ -157,84 +157,85 @@
     return k;
   }
 
-  var curSz = 126, curGap = 20, curCols = 8;
-  function calcLayout() {
+  // ---- LAYOUT: cada pagina calcula su tamaño para LLENAR la pantalla (horizontal o vertical),
+  //      sin excederla ni cortar botones. Se prioriza llenar el ANCHO (en horizontal no quedan
+  //      los botones chicos en el medio). PITS (cruz) se dimensiona aparte para que entre entera.
+  var curSz = 126, curGap = 20;
+  var pageMeta = [];   // por pagina: { grid, count, dpad }
+
+  function dims() {
     var w = window.innerWidth || document.documentElement.clientWidth || 800;
     var h = window.innerHeight || document.documentElement.clientHeight || 600;
-
     var compact = w < 850 || h < 550;
-    var tabsH = compact ? 42 : 54;
-    var padX = compact ? 8 : 24;
-    var padY = compact ? 6 : 14;
-    var gap = compact ? 8 : 22;
+    return { w: w, h: h, compact: compact,
+      tabsH: compact ? 42 : 54, padX: compact ? 8 : 20, padY: compact ? 6 : 12, gap: compact ? 10 : 22 };
+  }
 
-    var availW = w - padX * 2;
-    var availH = h - tabsH - padY * 2;
+  var MAXSZ = 126;   // tope de tamaño de boton (en tablet/PC grande queda como estaba: 8 col x 126)
+  function layoutActive() {
+    var meta = pageMeta[cur]; if (!meta) return;
+    var d = dims();
+    var gap = d.gap;
+    var availW = d.w - d.padX * 2;
+    var availH = d.h - d.tabsH - d.padY * 2;
+    var bestCols, bestSz;
 
-    var bestSz = 50, bestCols = 4;
-
-    if (w >= 1000 && h >= 550) {
-      // Tablet grande (Tab 2) o PC: 8 columnas de 126px
-      bestCols = 8;
-      bestSz = 126;
-      gap = 24;
+    if (meta.dpad) {
+      // fila de arriba (<=3 botones) + cruz 3x3  =>  3 columnas y 4 filas (1 + 3)
+      bestCols = Math.max(3, meta.count);
+      var rows = 4;
+      var sWd = Math.floor((availW - (bestCols - 1) * gap) / bestCols);
+      var sHd = Math.floor((availH - (rows - 1) * gap) / rows);
+      bestSz = Math.min(sWd, sHd);
+      if (bestSz > MAXSZ) bestSz = MAXSZ;
     } else {
-      // Teléfono o pantalla chica: probar columnas (3 a 8) y buscar la que maximice
-      // el tamaño del botón entrando TODO 100% dentro de la pantalla (sin scroll).
-      // Se reservan 4 filas: es lo que necesita la pagina PITS (fila de 3 + cruz 3x3).
-      // Asi ninguna pagina se sale, ni siquiera en pantalla completa.
-      for (var c = 3; c <= 8; c++) {
-        var r = Math.max(Math.ceil(15 / c), 4);
-        var gX = (c - 1) * gap;
-        var gY = (r - 1) * gap;
-        var maxW = Math.floor((availW - gX) / c);
-        var maxH = Math.floor((availH - gY) / r);
-        var s = Math.min(maxW, maxH);
-        if (s > 120) s = 120;
-        if (s > bestSz) {
-          bestSz = s;
-          bestCols = c;
-        }
+      var n = meta.count || 1;
+      var cand = [], maxS = 0, c;
+      for (c = 2; c <= 8 && c <= n; c++) {
+        var r = Math.ceil(n / c);
+        var w1 = Math.floor((availW - (c - 1) * gap) / c);
+        var h1 = Math.floor((availH - (r - 1) * gap) / r);
+        var s = Math.min(w1, h1);
+        if (s > MAXSZ) s = MAXSZ;
+        if (s < 20) continue;
+        cand.push({ c: c, s: s });
+        if (s > maxS) maxS = s;
+      }
+      // Entre las que dan buen tamaño (>=80% del maximo), elegir la que MAS llena el ancho.
+      bestCols = Math.min(n, 4); bestSz = 40; var bestFill = -1;
+      for (var i = 0; i < cand.length; i++) {
+        if (cand[i].s < maxS * 0.8) continue;
+        var fill = cand[i].c * cand[i].s + (cand[i].c - 1) * gap;
+        if (fill > bestFill) { bestFill = fill; bestCols = cand[i].c; bestSz = cand[i].s; }
       }
     }
 
-    if (bestSz < 50) bestSz = 50;
-    curSz = bestSz;
-    curCols = bestCols;
-    curGap = gap;
+    if (bestSz < 28) bestSz = 28;
+    curSz = bestSz; curGap = gap;
 
-    var lbl = curSz < 76 ? 9 : (curSz < 94 ? 10 : (curSz < 112 ? 11 : 12));
+    var lbl = curSz < 60 ? 8 : (curSz < 76 ? 9 : (curSz < 94 ? 10 : (curSz < 112 ? 11 : 12)));
     var st = document.body.style;
     st.setProperty('--size', curSz + 'px');
     st.setProperty('--gap', curGap + 'px');
     st.setProperty('--dgap', Math.max(6, Math.floor(curGap * 0.8)) + 'px');
     st.setProperty('--lbl', lbl + 'px');
-    st.setProperty('--tabsH', tabsH + 'px');
-    st.setProperty('--padX', padX + 'px');
-    st.setProperty('--padY', padY + 'px');
+    st.setProperty('--tabsH', d.tabsH + 'px');
+    st.setProperty('--padX', d.padX + 'px');
+    st.setProperty('--padY', d.padY + 'px');
+    document.body.className = d.compact ? 'compact' : '';
 
-    document.body.className = compact ? 'compact' : '';
-  }
-
-  function applyGridCols(cols, sz) {
-    var gs = document.querySelectorAll('.grid');
-    for (var i = 0; i < gs.length; i++) {
-      gs[i].style.gridTemplateColumns = 'repeat(' + cols + ', ' + sz + 'px)';
+    if (meta.grid) {
+      meta.grid.style.gridTemplateColumns = 'repeat(' + bestCols + ', ' + curSz + 'px)';
+      var old = meta.grid.querySelectorAll('.key.empty');
+      for (var j = 0; j < old.length; j++) meta.grid.removeChild(old[j]);
+      // completar la ultima fila con teclas LIBRE -> la grilla queda rectangular y llena
+      if (!meta.dpad) {
+        var pad = Math.ceil(meta.count / bestCols) * bestCols;
+        for (var e = meta.count; e < pad; e++) meta.grid.appendChild(makeKey(null, true));
+      }
     }
   }
 
-  function fillGrid(grid, normalCount) {
-    grid.style.gridTemplateColumns = 'repeat(' + curCols + ', ' + curSz + 'px)';
-    var old = grid.querySelectorAll('.key.empty');
-    for (var j = 0; j < old.length; j++) grid.removeChild(old[j]);
-    // Solo rellenar en pantallas grandes de tablet/PC para completar la fila
-    if (window.innerWidth >= 1000 && window.innerHeight >= 550) {
-      var pad = Math.ceil(normalCount / curCols) * curCols;
-      for (var i = normalCount; i < pad; i++) grid.appendChild(makeKey(null, true));
-    }
-  }
-
-  var gridsMeta = [];
   function makePage(page) {
     var pageEl = document.createElement('div'); pageEl.className = 'page';
     var grid = document.createElement('div'); grid.className = 'grid';
@@ -242,16 +243,13 @@
     var btns = page.buttons || [];
     for (i = 0; i < btns.length; i++) { b = btns[i]; if (b.dpad) dpadBtns.push(b); else normal.push(b); }
     for (i = 0; i < normal.length; i++) grid.appendChild(makeKey(normal[i], false));
-    if (dpadBtns.length === 0) {
-      fillGrid(grid, normal.length);
-      gridsMeta.push({ grid: grid, count: normal.length });
-    }
     pageEl.appendChild(grid);
     if (dpadBtns.length) {
       var dp = document.createElement('div'); dp.className = 'dpad';
       for (i = 0; i < dpadBtns.length; i++) { var kk = makeKey(dpadBtns[i], false); kk.className += ' ' + (dpadBtns[i].val || ''); dp.appendChild(kk); }
       pageEl.appendChild(dp);
     }
+    pageMeta.push({ grid: grid, count: normal.length, dpad: dpadBtns.length > 0 });
     return pageEl;
   }
 
@@ -260,6 +258,7 @@
     cur = idx; if (pages[idx] && !pages[idx].hidden) lastVis = idx;
     var ps = pagesEl.children; for (var i = 0; i < ps.length; i++) ps[i].className = (i === idx ? ('page active' + (anim ? ' ' + anim : '')) : 'page');
     var ts = tabsEl.children; for (i = 0; i < ts.length; i++) ts[i].className = (parseInt(ts[i].getAttribute('data-pageidx'), 10) === idx ? 'tab active' : 'tab');
+    layoutActive();   // la pagina que se muestra se ajusta para llenar la pantalla
   }
   function goToPageByName(name) { for (var i = 0; i < pages.length; i++) { if ((pages[i].name || '') === name) { showPage(i); return; } } }
 
@@ -349,11 +348,7 @@
   document.addEventListener('touchend', goFS, { once: true });
   document.addEventListener('click', goFS, { once: true });
 
-  function onResize() {
-    calcLayout();
-    applyGridCols(curCols, curSz);
-    for (var i = 0; i < gridsMeta.length; i++) fillGrid(gridsMeta[i].grid, gridsMeta[i].count);
-  }
+  function onResize() { layoutActive(); }
   window.addEventListener('resize', onResize);
   window.addEventListener('orientationchange', function () { setTimeout(onResize, 120); });
   function reLayoutSoon() { setTimeout(onResize, 120); setTimeout(onResize, 400); }
@@ -362,12 +357,11 @@
   document.addEventListener('mozfullscreenchange', reLayoutSoon);
 
   // arrancar: traer las paginas desde /config y armarlas TODAS una sola vez
-  calcLayout();
   xhrGet('/config', function (err, txt) {
     var cfg; try { cfg = JSON.parse(txt); } catch (e) { cfg = null; }
     pages = (cfg && cfg.pages) ? cfg.pages : [];
     pagesEl.innerHTML = '';
-    gridsMeta = [];
+    pageMeta = [];
     for (var i = 0; i < pages.length; i++) pagesEl.appendChild(makePage(pages[i]));
     buildTabs();
     var hp = parseInt((location.hash || '').replace('#p', ''), 10);

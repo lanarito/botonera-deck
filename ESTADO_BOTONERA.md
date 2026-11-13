@@ -347,4 +347,15 @@ El usuario reporto que al modificar el volumen no aparecia la barra, y que YouTu
 
 Linea de compilacion (sigue igual): `csc.exe /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:Botonera.exe Botonera.cs`
 
+## 26. [CLAUDE - 2026-11-13] Layout por pagina: llena la pantalla en horizontal Y vertical
+El usuario reporto que en horizontal los botones quedaban chicos en el medio con huecos a los lados, en vez de ocupar la pantalla. Causa: habia **un solo tamaño global** para todas las paginas y se reservaban 4 filas (por la cruz de PITS), asi que en horizontal todo quedaba chico y con pocas columnas centradas.
+
+**Reescrito el motor de layout en `web/index.html`:**
+- Se eliminaron `calcLayout`/`applyGridCols`/`fillGrid` globales. Ahora **cada pagina calcula su propio tamaño** con `layoutActive()`, que corre en cada `showPage()`, `resize`, `orientationchange` y cambio de fullscreen.
+- El algoritmo prueba columnas 2..8 y, **entre las que dan buen tamaño (>=80% del maximo), elige la que MAS llena el ancho** -> en horizontal usa mas columnas y llena la pantalla (antes elegia el boton mas grande y quedaba angosto/centrado).
+- PITS (dpad) se dimensiona aparte: 3 columnas x 4 filas (fila + cruz), queda compacta y centrada (un D-pad no se estira).
+- La ultima fila se completa con teclas `LIBRE` para que la grilla quede rectangular y llena.
+- Tope de tamaño 126px -> en la tablet grande (Tab 2) sigue dando 8 col x 126 como antes.
+- Verificado por simulacion: INICIO llena 99-100% del ancho en vertical (3 col) y horizontal (7-8 col); CARRERA 100%; tablet 8x126. En pantallas muy anchas y bajas queda margen vertical (botones cuadrados) pero el ancho se llena y nada se corta.
+
 
