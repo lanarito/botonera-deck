@@ -1355,7 +1355,8 @@ class Botonera
             sb.AppendLine("@echo off");
             sb.AppendLine(":wait");
             sb.AppendLine("tasklist /FI \"PID eq " + pid + "\" | find \"" + pid + "\" >nul && (ping -n 2 127.0.0.1 >nul & goto wait)");
-            sb.AppendLine("robocopy \"" + src + "\" \"" + dest + "\" /E /IS /IT /R:2 /W:1 /XD .git /NFL /NDL /NJH /NJS >nul");
+            sb.AppendLine("robocopy \"" + src + "\" \"" + dest + "\" /E /IS /IT /R:2 /W:1 /XD .git /XF botones.json dc_*.png spotify*.png /NFL /NDL /NJH /NJS >nul");
+            sb.AppendLine("if not exist \"" + Path.Combine(dest, "botones.json") + "\" copy /Y \"" + Path.Combine(src, "botones.json") + "\" \"" + Path.Combine(dest, "botones.json") + "\" >nul");
             sb.AppendLine("start \"\" \"" + Path.Combine(dest, "Botonera.exe") + "\"");
             sb.AppendLine("rmdir /S /Q \"" + tmp + "\"");
             sb.AppendLine("del \"%~f0\"");
@@ -1363,6 +1364,8 @@ class Botonera
             Process.Start(new ProcessStartInfo("cmd.exe", "/c \"" + bat + "\"") { WindowStyle = ProcessWindowStyle.Hidden, CreateNoWindow = true, UseShellExecute = false });
             Log("actualizacion: reiniciando para aplicar v" + (UpdVer ?? "?") + "...");
             Thread.Sleep(600);
+            try { if (Listener != null) Listener.Stop(); } catch { }
+            try { if (AppMutex != null) { AppMutex.ReleaseMutex(); AppMutex.Dispose(); AppMutex = null; } } catch { }
             Environment.Exit(0);
         }
         catch (Exception e)

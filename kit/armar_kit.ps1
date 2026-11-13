@@ -8,6 +8,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $app 'web\icons') | Out-Nul
 
 foreach ($f in 'INSTALAR.bat', 'instalar.ps1', 'DESINSTALAR.bat', 'asignar_teclas_AC.ps1', 'LEEME - Como instalar y configurar.txt', 'Manual - Botonera Deck.pdf') { Copy-Item (Join-Path $PSScriptRoot $f) $out }
 Copy-Item (Join-Path $repo 'Botonera.exe') $app
+if (Test-Path (Join-Path $repo 'version.json')) { Copy-Item (Join-Path $repo 'version.json') $app }
 Copy-Item (Join-Path $PSScriptRoot 'reiniciar.bat') $app
 # botonera IGUAL a la del simu (orden, SETUPHUB, ANTIGRAVITY...), salvo lo que es de cada persona:
 #  - servidores de Discord: se sacan; Botonera.exe detecta los de cada uno solo al arrancar la primera vez
