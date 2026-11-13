@@ -253,7 +253,10 @@ class Botonera
     // force-stop antes: si Jelly reusa una pestaña vieja la pagina queda en blanco (visto en la PC del simu 2026-11-11)
     // Se abre en "Webview Kiosk" (F-Droid, uk.nktnet.webviewkiosk): pantalla completa SIN barras desde el arranque
     // (configurado en la tablet: Home URL = esta pagina, Address bar/Floating toolbar = Hidden, Immersive = Always On, Inset = None).
-    static readonly string OpenPage = "shell \"am force-stop org.lineageos.jelly; am force-stop uk.nktnet.webviewkiosk; sleep 1; am start -a android.intent.action.VIEW -d http://localhost:" + Port + "/index.html -n uk.nktnet.webviewkiosk/.MainActivity\"";
+    // Si la tablet no tiene Webview Kiosk (ej. tablet de un amigo recien instalada), abre el navegador que tenga.
+    static readonly string OpenPage = "shell \"am force-stop org.lineageos.jelly; am force-stop uk.nktnet.webviewkiosk; sleep 1; " +
+        "if pm list packages uk.nktnet.webviewkiosk | grep -q kiosk; then am start -a android.intent.action.VIEW -d http://localhost:" + Port + "/index.html -n uk.nktnet.webviewkiosk/.MainActivity; " +
+        "else am start -a android.intent.action.VIEW -d http://localhost:" + Port + "/index.html; fi\"";
     static void AdbLoop()
     {
         bool lastOk = false;

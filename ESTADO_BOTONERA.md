@@ -257,3 +257,14 @@ Reporte del usuario: nada de CARRERA/PANTALLA hacía nada en AC, todo "re lento"
 - [2026-11-11] Se sacó SPOTIFY de INICIO. El botón DISCORD de INICIO abre Discord **y** salta a la página DISCORD (`"goto": "DISCORD"`).
 - [2026-11-11] Página DISCORD ahora **oculta** (sin pestaña arriba, `"hidden": true`): se entra SOLO con el botón DISCORD de INICIO; tiene botón 🔙 INICIO para volver (o deslizar).
 - [2026-11-11] Look: fondo **negro total** (#000, sin aluminio cepillado) para que resalten las luces; botones **126 px** (antes 116) con **30 px** de separación (antes 20) → 8 por fila; huecos LIBRE completan la fila según el ancho.
+
+## 16. [CLAUDE PC del simu — 2026-11-12] KIT PARA REGALAR (amigos) ✅
+- Carpeta `kit/` del repo. `kit/armar_kit.ps1` arma en el Escritorio `BotoneraDeck-Kit\` + `BotoneraDeck-Kit.zip` (~78 KB) SIN datos personales
+  (sin servidores de Discord, sin rutas propias; Assetto se abre con `steam://rungameid/244210`).
+- Contenido: `INSTALAR.bat` (→ `instalar.ps1`: copia a `C:\BotoneraDeck`, baja adb de Google + Webview Kiosk de F-Droid, autoarranque,
+  accesos en el Escritorio, si la tablet está autorizada le instala el kiosk), `asignar_teclas_AC.ps1` (backup + KEY en controls.ini, agrega
+  secciones faltantes, no toca botones del volante; `-Ini` y `-SinPausa` para probar), `DESINSTALAR.bat`, `LEEME - Como instalar y configurar.txt`
+  (tablet, PC, pantalla completa, teclas AC, Discord, cómo editar botones.json con ejemplos de cada tipo, problemas frecuentes).
+- `Botonera.cs`: si la tablet NO tiene Webview Kiosk, abre el navegador por defecto.
+- **Probado de punta a punta en esta PC** (instaló, conectó la tablet y mostró la botonera genérica); después se restauró lo del usuario.
+  Quedó la carpeta de prueba `C:\BotoneraDeck` (borrar a mano; la seguridad no deja borrarla desde acá).

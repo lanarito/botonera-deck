@@ -1,0 +1,166 @@
+﻿==========================================================================
+  BOTONERA DECK  -  botonera tactil para el simulador, en una tablet Android
+==========================================================================
+
+Es una botonera tipo "Stream Deck" en tu tablet, conectada a la PC por el
+cable USB. Tocas un boton en la tablet y en la PC pasa algo: se abre un
+programa o una pagina, se aprieta una tecla en Assetto Corsa, cambia el
+volumen, etc. Botones 3D con luz, varias paginas (INICIO, CARRERA,
+PANTALLA) y para pasar de pagina deslizas el dedo para cualquier lado.
+
+QUE NECESITAS
+  - PC con Windows 10/11 e internet (solo para instalar).
+  - Tablet Android 5.0 o mas nueva, con su cable USB de DATOS
+    (algunos cables baratos son solo de carga y no sirven).
+  - Para los botones de Assetto Corsa: Content Manager y Custom Shaders
+    Patch (CSP). Sin CSP andan igual camara, mirar, nombres, apps, linea
+    ideal, danos y captura.
+
+
+--------------------------------------------------------------------------
+ PASO 1 - PREPARAR LA TABLET (una sola vez, 2 minutos)
+--------------------------------------------------------------------------
+ 1. Ajustes > Informacion del telefono/tablet > tocar 7 veces seguidas
+    "Numero de compilacion" hasta que diga "Ahora sos desarrollador".
+    (En Samsung: Ajustes > Acerca de la tablet > Informacion de software.)
+ 2. Volver a Ajustes > "Opciones de desarrollador" > activar
+    "Depuracion USB".
+ 3. Opcional pero recomendado, ahi mismo: activar "Pantalla activa"
+    (que no se apague mientras carga).
+ 4. Enchufar la tablet a la PC con el cable. Si aparece el cartel
+    "Permitir depuracion USB?" > marcar "Permitir siempre desde este
+    equipo" > Aceptar.
+
+
+--------------------------------------------------------------------------
+ PASO 2 - INSTALAR EN LA PC
+--------------------------------------------------------------------------
+ 1. Descomprimir este ZIP en cualquier lado (ej. el Escritorio).
+ 2. Doble clic en  INSTALAR.bat
+    - Copia todo a C:\BotoneraDeck
+    - Baja la herramienta USB oficial de Google y la app de pantalla
+      completa para la tablet (Webview Kiosk, gratis)
+    - La deja arrancando sola con Windows
+    - Crea en el Escritorio:  "Botonera - Editar botones",
+      "Botonera - Asignar teclas en AC", "Botonera - Reiniciar",
+      "Botonera - Guia"
+    - Si la tablet esta enchufada y autorizada, le instala la app sola.
+    Si Windows pregunta "Windows protegio su PC": "Mas informacion" >
+    "Ejecutar de todas formas" (es porque el programa no esta firmado).
+ 3. En unos segundos la botonera aparece sola en la tablet.
+    Si no aparece: desenchufar y volver a enchufar la tablet.
+
+
+--------------------------------------------------------------------------
+ PASO 3 - PANTALLA COMPLETA EN LA TABLET (una sola vez)
+--------------------------------------------------------------------------
+ La botonera se abre en la app "Webview Kiosk". Para sacarle las barras:
+ 1. En la tablet, tocar el boton redondo violeta con la llave (abajo a la
+    derecha) > Settings > Appearance, y cambiar:
+       Floating Toolbar Mode ...... Hidden
+       Address Bar Mode ........... Hidden
+       Immersive Mode ............. Always On
+       WebView Inset .............. None
+    (en cada uno: lapiz > elegir > Save)
+ 2. Settings > Web Content > Home URL > "Use the current URL" > Save.
+ 3. Listo: desenchufar y enchufar la tablet (o "Botonera - Reiniciar").
+ OJO: despues de ocultar la barra flotante ya no se ve la llave. Hace este
+ paso completo de una vez.
+
+
+--------------------------------------------------------------------------
+ PASO 4 - TECLAS EN ASSETTO CORSA (una sola vez)
+--------------------------------------------------------------------------
+ Con Assetto Corsa CERRADO: doble clic en  "Botonera - Asignar teclas en AC"
+ (Escritorio). Hace backup de tus controles y solo agrega la tecla de cada
+ accion; lo que tengas en el volante queda igual. Teclas que usa:
+   CAMARA F18 | MIRAR izq/der/atras Q/E/W | FOV +/- Num+/Num-
+   CAM arriba/abajo Num8/Num2 | ADELANTE/ATRAS F14/F15 | VISTA ORIG. F16
+   PITS F24 (menu rapido de boxes de CSP) | NOMBRES L | APPS/HUD H
+   OCULTAR TODO Ctrl+Alt+Shift+H | CAMBIAR APPS F13 | ESPEJO F11
+   LINEA IDEAL I | DANOS J | CAPTURA F8 | GUARDAR CLIP Ctrl+Shift+S
+   PAUSA F19 | SETUP AUTO F17
+ Importante: AC tiene que estar AL FRENTE (la ventana activa) cuando
+ tocas los botones de CARRERA / PANTALLA.
+
+
+--------------------------------------------------------------------------
+ PASO 5 - DISCORD: MIC Y AURICULARES (opcional)
+--------------------------------------------------------------------------
+ Discord > Ajustes de usuario > Atajos de teclado > Anadir atajo:
+   "Activar/desactivar silencio" ........ Ctrl+Shift+Alt+F9
+   "Activar/desactivar ensordecimiento" . Ctrl+Shift+Alt+F10
+ (para grabar el atajo, apretar las teclas a la vez en el teclado)
+
+
+==========================================================================
+ CONFIGURAR TUS BOTONES  (archivo C:\BotoneraDeck\botones.json)
+==========================================================================
+ Abrilo con "Botonera - Editar botones" (Escritorio). Guarda (Ctrl+S) y despues
+ doble clic en "Botonera - Reiniciar": la tablet se recarga con los cambios.
+ Si algo deja de andar, casi siempre es una coma o comilla de mas/menos.
+ Antes de cambiar mucho, hace una copia del archivo.
+
+ Cada boton es UNA linea asi:
+   { "id": "youtube", "label": "YOUTUBE", "icon": "icons/youtube.png", "type": "url", "val": "https://www.youtube.com" },
+
+   id     nombre interno, UNICO, sin espacios ni acentos (ej. "mi_boton")
+   label  el texto que se ve en el boton
+   icon   la imagen: archivo en C:\BotoneraDeck\web\icons\  (png, 72x72 o mas)
+   type   que hace el boton (ver abajo)
+   val    el dato de esa accion
+ Entre un boton y el siguiente va una coma. El ULTIMO de la lista NO
+ lleva coma al final.
+
+ TIPOS DE BOTON:
+  "launch"  abre un programa. val = ruta del .exe ("args" opcional)
+            { "id": "cm", "label": "CONTENT MGR", "icon": "icons/assetto.png", "type": "launch", "val": "C:\\Juegos\\Content Manager.exe" },
+            OJO: en las rutas las barras van DOBLES:  C:\\Carpeta\\Programa.exe
+            Truco para la ruta: clic derecho en el acceso directo del
+            programa > Propiedades > "Destino".
+  "url"     abre una pagina web o un enlace de programa (steam://, discord://)
+            { "id": "twitch", "label": "TWITCH", "icon": "icons/em_clip.png", "type": "url", "val": "https://www.twitch.tv" },
+  "key"     aprieta teclas. val = tecla o combinacion con +
+            { "id": "luces", "label": "LUCES", "icon": "icons/em_flag.png", "type": "key", "val": "ctrl+l" },
+            Teclas validas: a-z, 0-9, f1-f24, ctrl, shift, alt, win, enter,
+            esc, space, tab, up, down, left, right, home, end, pageup,
+            pagedown, del, backspace, num0-num9, num+, num-, num*, num/
+            Para AC: asigna en Content Manager > Controles la misma tecla
+            (lo mas seguro: f13 a f24, que no las usa nadie).
+  "vol"     volumen de Windows. val = "up", "down" o "mute"
+  "page"    va a otra pagina de la botonera. val = nombre de la pagina
+
+ EXTRAS (opcionales, dentro de la linea del boton):
+   "toggle": true, "labelOn": "MIC MUTEADO"   -> queda prendido/apagado con luz
+   "goto": "PITS"                              -> ademas de su accion, salta a esa pagina
+
+ PAGINAS: el archivo tiene "pages", cada una con "name" y "buttons".
+   - Para agregar una pagina, copia una entera (desde { "name" ... hasta su ] }),
+     pegala y cambiale el nombre.
+   - "hidden": true  = pagina sin pestana arriba (se entra con un boton
+     que tenga "goto" o "type": "page"), como PITS.
+   - El orden de las paginas y de los botones es el orden del archivo.
+
+ ICONOS: ponelos en C:\BotoneraDeck\web\icons\ (png). Emojis lindos y
+ gratis (Twemoji): https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/1f3c1.png (cambiar el codigo del emoji) o usar
+ cualquier logo png. Los que vienen se llaman em_*.png.
+
+ DISCORD DIRECTO A UN SERVIDOR: Discord > Ajustes > Avanzado > Modo
+ desarrollador ON. Clic derecho en el servidor > Copiar ID. Boton:
+   { "id": "dc_mio", "label": "MI SERVER", "icon": "icons/discord.png", "type": "url", "val": "discord://-/channels/PEGAR_ID_ACA" },
+
+
+==========================================================================
+ PROBLEMAS FRECUENTES
+==========================================================================
+ - La tablet no muestra nada: desenchufar y enchufar. Revisar que la
+   depuracion USB siga activada y el cartel de autorizacion aceptado.
+   Probar otro cable (de datos) u otro puerto USB.
+ - Abajo a la derecha hay un puntito: VERDE = conectada a la PC,
+   ROJO = sin conexion.
+ - Un boton de AC no hace nada: AC tiene que estar al frente; correr
+   "Botonera - Asignar teclas en AC" con AC cerrado; reiniciar AC.
+ - Que paso con un boton: C:\BotoneraDeck\estado_botonera.txt anota cada
+   toque y que ventana estaba al frente.
+ - Cambie botones.json y no aparece: "Botonera - Reiniciar".
+ - Quitar todo: DESINSTALAR.bat (deja la carpeta C:\BotoneraDeck).
