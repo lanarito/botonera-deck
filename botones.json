@@ -57,7 +57,6 @@
       "name": "PANTALLA",
       "buttons": [
         { "id": "ac_nombres", "label": "NOMBRES", "icon": "icons/em_names.png", "type": "key", "val": "ctrl+l" },
-        { "id": "ac_apps", "label": "APPS / HUD", "icon": "icons/em_apps.png", "type": "key", "val": "ctrl+h" },
         { "id": "ac_ocultar", "label": "OCULTAR TODO", "icon": "icons/em_hideall.png", "type": "key", "val": "ctrl+shift+alt+h" },
         { "id": "ac_escritorio", "label": "CAMBIAR APPS", "icon": "icons/em_desktops.png", "type": "key", "val": "f13" },
         { "id": "ac_espejo", "label": "ESPEJO", "icon": "icons/em_mirror.png", "type": "key", "val": "f11" },
