@@ -45,10 +45,10 @@ class Botonera
     const byte VOL_UP = 0xAF, VOL_DN = 0xAE, VOL_MUTE = 0xAD;
 
     // ===== Modelo de configuracion (botones.json) =====
-    public class BtnDef { public string id = "", label = "", labelOn = "", icon = "", type = "", val = "", args = ""; public bool toggle = false; }
+    public class BtnDef { public string id = "", label = "", labelOn = "", icon = "", type = "", val = "", args = "", screen = ""; public bool toggle = false, hold = false; }
     public class Page { public string name = ""; public BtnDef[] buttons = new BtnDef[0]; }
     public class Config { public Page[] pages = new Page[0]; }
-    class Act { public string type, val, args; public Act(string t, string v, string a) { type = t; val = v; args = a; } }
+    class Act { public string type, val, args, screen; public Act(string t, string v, string a, string s) { type = t; val = v; args = a; screen = s; } }
 
     static readonly object CfgLk = new object();
     static Dictionary<string, Act> Buttons = new Dictionary<string, Act>();
@@ -110,7 +110,7 @@ class Botonera
                     foreach (var b in pg.buttons)
                     {
                         if (b == null || b.id == null || b.id.Length == 0) continue;
-                        map[b.id] = new Act(b.type ?? "", b.val ?? "", b.args ?? "");
+                        map[b.id] = new Act(b.type ?? "", b.val ?? "", b.args ?? "", b.screen ?? "");
                         if (b.toggle) lock (Lk) { if (!Toggles.ContainsKey(b.id)) Toggles[b.id] = false; }
                     }
                 }
@@ -163,7 +163,7 @@ class Botonera
         try { uint pid; GetWindowThreadProcessId(GetForegroundWindow(), out pid); return Process.GetProcessById((int)pid).ProcessName; } catch { return "?"; }
     }
     static readonly Dictionary<string, DateTime> LastPress = new Dictionary<string, DateTime>();
-    static void SendKeys(string combo)
+    static void SendCombo(string combo)
     {
         var keys = new List<byte>();
         foreach (var p in combo.Split('+')) { byte k = Vk(p); if (k != 0) keys.Add(k); }
@@ -172,6 +172,25 @@ class Botonera
         Thread.Sleep(60);
         for (int i = keys.Count - 1; i >= 0; i--) KeyScan(keys[i], true);
         Log("tecla " + combo + " -> ventana al frente: " + Foreground());
+    }
+    static void SendKeys(string seq)
+    {
+        string[] parts = seq.Split(';');
+        for (int i = 0; i < parts.Length; i++)
+        {
+            string s = parts[i].Trim();
+            if (s.Length == 0) continue;
+            if (i > 0) Thread.Sleep(140);
+            SendCombo(s);
+        }
+    }
+    static void KeyHold(string combo, bool down)
+    {
+        var keys = new List<byte>();
+        foreach (var p in combo.Split('+')) { byte k = Vk(p); if (k != 0) keys.Add(k); }
+        if (keys.Count == 0) return;
+        if (down) { foreach (var k in keys) KeyScan(k, false); }
+        else { for (int i = keys.Count - 1; i >= 0; i--) KeyScan(keys[i], true); }
     }
     // Volumen GENERAL de Windows usando Core Audio directamente (Endpoint.SetMasterVolumeLevelScalar / SetMute)
     // up/down: sube/baja 4%. mute: silencia/activa con lectura real.
@@ -380,7 +399,70 @@ class Botonera
         list.Sort(StringComparer.OrdinalIgnoreCase);
         return list;
     }
-    static void Launch(string path, string args)
+    [StructLayout(LayoutKind.Sequential)] struct MONITORINFO { public int cbSize; public RECT rcMonitor, rcWork; public uint dwFlags; }
+    delegate bool MonEnumProc(IntPtr hMon, IntPtr hdc, ref RECT r, IntPtr data);
+    delegate bool WinEnumProc(IntPtr hwnd, IntPtr lParam);
+    [DllImport("user32.dll")] static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr clip, MonEnumProc cb, IntPtr data);
+    [DllImport("user32.dll")] static extern bool GetMonitorInfo(IntPtr hMon, ref MONITORINFO mi);
+    [DllImport("user32.dll")] static extern bool EnumWindows(WinEnumProc cb, IntPtr lParam);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll")] static extern int GetWindowTextLength(IntPtr hwnd);
+    [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hwnd, out RECT r);
+    [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
+    static bool GetSecondaryWorkArea(out RECT area)
+    {
+        RECT found = new RECT(); bool ok = false;
+        EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, delegate(IntPtr hm, IntPtr hdc, ref RECT r, IntPtr d) {
+            var mi = new MONITORINFO(); mi.cbSize = Marshal.SizeOf(typeof(MONITORINFO));
+            if (GetMonitorInfo(hm, ref mi) && (mi.dwFlags & 1) == 0) { found = mi.rcWork; ok = true; return false; }
+            return true;
+        }, IntPtr.Zero);
+        area = found; return ok;
+    }
+    static string TargetProcName(string exePath, string args)
+    {
+        if (!string.IsNullOrEmpty(args))
+        {
+            var m = Regex.Match(args, @"--processStart\s+""?([^""\s]+)", RegexOptions.IgnoreCase);
+            if (m.Success) return Path.GetFileNameWithoutExtension(m.Groups[1].Value);
+        }
+        return Path.GetFileNameWithoutExtension(exePath);
+    }
+    static void MoveToSecondary(string procName)
+    {
+        RECT sec; if (string.IsNullOrEmpty(procName) || !GetSecondaryWorkArea(out sec)) return;
+        int sw = sec.R - sec.L, sh = sec.B - sec.T;
+        for (int tries = 0; tries < 28; tries++)
+        {
+            var pids = new HashSet<int>();
+            foreach (var pr in Process.GetProcessesByName(procName)) pids.Add(pr.Id);
+            IntPtr found = IntPtr.Zero;
+            if (pids.Count > 0)
+            {
+                EnumWindows(delegate(IntPtr h, IntPtr lp) {
+                    if (!IsWindowVisible(h) || GetWindowTextLength(h) == 0) return true;
+                    uint pid; GetWindowThreadProcessId(h, out pid);
+                    if (pids.Contains((int)pid)) { found = h; return false; }
+                    return true;
+                }, IntPtr.Zero);
+            }
+            if (found != IntPtr.Zero)
+            {
+                ShowWindow(found, 9);
+                RECT wr; GetWindowRect(found, out wr);
+                int w = Math.Min(Math.Max(wr.R - wr.L, 900), sw);
+                int h = Math.Min(Math.Max(wr.B - wr.T, 600), sh);
+                int x = sec.L + Math.Max(0, (sw - w) / 2);
+                int y = sec.T + Math.Max(0, (sh - h) / 2);
+                SetWindowPos(found, IntPtr.Zero, x, y, w, h, 0x0040);
+                ForceFront(found);
+                Log("pantalla secundaria OK: " + procName);
+                return;
+            }
+            Thread.Sleep(250);
+        }
+    }
+    static void Launch(string path, string args, string screen = "")
     {
         try
         {
@@ -390,6 +472,11 @@ class Botonera
             if (!string.IsNullOrEmpty(args)) psi.Arguments = args;
             try { string d = Path.GetDirectoryName(p); if (!string.IsNullOrEmpty(d) && Directory.Exists(d)) psi.WorkingDirectory = d; } catch { }
             Process.Start(psi); Log("launch OK: " + p);
+            if (screen == "secondary")
+            {
+                string pn = TargetProcName(p, args);
+                new Thread(delegate() { MoveToSecondary(pn); }) { IsBackground = true }.Start();
+            }
         }
         catch (Exception e) { Log("launch ERROR " + path + ": " + e.Message); }
     }
@@ -444,12 +531,13 @@ class Botonera
         catch { }
     }
 
-    static void DoAction(string id)
+    static void DoAction(string id, string ev)
     {
         Act a; if (!Buttons.TryGetValue(id, out a)) { Log("id desconocido: " + id); return; }
+        if ((ev == "down" || ev == "up") && a.type == "key") { KeyHold(a.val, ev == "down"); return; }
         switch (a.type)
         {
-            case "launch": Launch(a.val, a.args); break;
+            case "launch": Launch(a.val, a.args, a.screen); break;
             case "url":    OpenUrl(a.val); break;
             case "key":    SendKeys(a.val); break;
             case "vol":    Volume(a.val); break;
@@ -513,14 +601,15 @@ class Botonera
             if (path == "/press")
             {
                 string id = c.Request.QueryString["id"] ?? "";
+                string ev = c.Request.QueryString["ev"] ?? "";
                 LoadConfig(false);
                 // anti-doble: el mismo boton dos veces en < 300 ms es un toque repetido por la tablet, no del usuario
-                // (el volumen +/- NO se filtra: tocarlo rapido varias veces es a proposito)
+                // (el volumen +/- y los eventos hold down/up NO se filtran)
                 bool dup = false;
                 Act pa; bool isVolStep = Buttons.TryGetValue(id, out pa) && ((pa.type == "vol" && pa.val != "mute") || (pa.type == "appvol" && pa.args != "" && !pa.args.Equals("mute", StringComparison.OrdinalIgnoreCase)));
-                if (!isVolStep) lock (Lk) { DateTime prev; dup = LastPress.TryGetValue(id, out prev) && (DateTime.Now - prev).TotalMilliseconds < 300; LastPress[id] = DateTime.Now; }
+                if (!isVolStep && ev != "down" && ev != "up") lock (Lk) { DateTime prev; dup = LastPress.TryGetValue(id, out prev) && (DateTime.Now - prev).TotalMilliseconds < 300; LastPress[id] = DateTime.Now; }
                 if (dup) Log("ignorado doble toque: " + id);
-                else if (id.Length > 0) { Log("toque: " + id); DoAction(id); }
+                else if (id.Length > 0) { if (ev != "up") Log("toque: " + id + (ev.Length > 0 ? " (" + ev + ")" : "")); DoAction(id, ev); }
                 Send(c.Response, 200, "application/json", Encoding.UTF8.GetBytes(StateJson()));
                 return;
             }
