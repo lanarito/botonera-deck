@@ -48,10 +48,10 @@
   @keyframes inR { from { transform: translateX(-60px); opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inU { from { transform: translateY(50px);  opacity: .2; } to { transform: none; opacity: 1; } }
   @keyframes inD { from { transform: translateY(-50px); opacity: .2; } to { transform: none; opacity: 1; } }
-  .grid { display: grid; gap: var(--gap); justify-content: center; align-content: center; }
+  .grid { display: flex; flex-wrap: wrap; gap: var(--gap); justify-content: center; align-content: center; max-width: var(--gridW, 100%); margin: 0 auto; }
   .dpad { display: grid; grid-template-columns: repeat(3, var(--size)); grid-template-rows: repeat(3, var(--size)); gap: var(--dgap); justify-content: center; align-content: center; margin: 10px auto 0; }
   .page.has-dpad.active.land { flex-direction: row; align-items: center; justify-content: center; gap: 32px; }
-  .page.has-dpad.land .grid { grid-template-columns: repeat(1, var(--size)) !important; }
+  .page.has-dpad.land .grid { flex-direction: column; flex-wrap: nowrap; width: var(--size); max-width: var(--size); margin: 0; }
   .page.has-dpad.land .dpad { margin: 0; }
   .dpad .up { grid-column: 2; grid-row: 1; }
   .dpad .left { grid-column: 1; grid-row: 2; }
@@ -204,7 +204,7 @@
         if (pEl) pEl.classList.add('has-dpad', 'land');
         bestCols = 4;
         var sWd = Math.floor((availW - 32 - 3 * gap) / 4);
-        var sHd = Math.floor((availH - 2 * gap) / 3);
+        var sHd = Math.floor((availH - 14 - 2 * gap) / 3);
         bestSz = Math.min(sWd, sHd);
       } else {
         if (pEl) { pEl.classList.add('has-dpad'); pEl.classList.remove('land'); }
@@ -212,7 +212,7 @@
         bestCols = Math.max(3, meta.count);
         var rows = 4;
         var sWd = Math.floor((availW - (bestCols - 1) * gap) / bestCols);
-        var sHd = Math.floor((availH - (rows - 1) * gap) / rows);
+        var sHd = Math.floor((availH - 14 - (rows - 1) * gap) / rows);
         bestSz = Math.min(sWd, sHd);
       }
       if (bestSz > MAXSZ) bestSz = MAXSZ;
@@ -254,14 +254,9 @@
     document.body.className = d.compact ? 'compact' : '';
 
     if (meta.grid) {
-      meta.grid.style.gridTemplateColumns = 'repeat(' + bestCols + ', ' + curSz + 'px)';
+      meta.grid.style.setProperty('--gridW', (bestCols * curSz + (bestCols - 1) * curGap) + 'px');
       var old = meta.grid.querySelectorAll('.key.empty');
       for (var j = 0; j < old.length; j++) meta.grid.removeChild(old[j]);
-      // completar la ultima fila con teclas LIBRE -> la grilla queda rectangular y llena
-      if (!meta.dpad) {
-        var pad = Math.ceil(meta.count / bestCols) * bestCols;
-        for (var e = meta.count; e < pad; e++) meta.grid.appendChild(makeKey(null, true));
-      }
     }
   }
 

@@ -4,6 +4,7 @@
 // - Mantiene "adb reverse tcp:8790" solo, y se recupera del replug (reconnect + reabrir pagina).
 // - /press?id=xxx ejecuta la accion del boton: launch (programa), url (pagina), key (teclas), vol (volumen).
 // Compilar: csc /nologo /target:winexe /optimize /r:System.Web.Extensions.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll /out:Botonera.exe Botonera.cs
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -428,10 +429,22 @@ class Botonera
         }
         return Path.GetFileNameWithoutExtension(exePath);
     }
+    static void PlaceOnSecondary(IntPtr found)
+    {
+        RECT sec; if (found == IntPtr.Zero || !GetSecondaryWorkArea(out sec)) return;
+        int sw = sec.R - sec.L, sh = sec.B - sec.T;
+        ShowWindow(found, 9);
+        RECT wr; GetWindowRect(found, out wr);
+        int w = Math.Min(Math.Max(wr.R - wr.L, 900), sw);
+        int h = Math.Min(Math.Max(wr.B - wr.T, 600), sh);
+        int x = sec.L + Math.Max(0, (sw - w) / 2);
+        int y = sec.T + Math.Max(0, (sh - h) / 2);
+        SetWindowPos(found, IntPtr.Zero, x, y, w, h, 0x0040);
+        ForceFront(found);
+    }
     static void MoveToSecondary(string procName)
     {
         RECT sec; if (string.IsNullOrEmpty(procName) || !GetSecondaryWorkArea(out sec)) return;
-        int sw = sec.R - sec.L, sh = sec.B - sec.T;
         for (int tries = 0; tries < 28; tries++)
         {
             var pids = new HashSet<int>();
@@ -448,14 +461,7 @@ class Botonera
             }
             if (found != IntPtr.Zero)
             {
-                ShowWindow(found, 9);
-                RECT wr; GetWindowRect(found, out wr);
-                int w = Math.Min(Math.Max(wr.R - wr.L, 900), sw);
-                int h = Math.Min(Math.Max(wr.B - wr.T, 600), sh);
-                int x = sec.L + Math.Max(0, (sw - w) / 2);
-                int y = sec.T + Math.Max(0, (sh - h) / 2);
-                SetWindowPos(found, IntPtr.Zero, x, y, w, h, 0x0040);
-                ForceFront(found);
+                PlaceOnSecondary(found);
                 Log("pantalla secundaria OK: " + procName);
                 return;
             }
@@ -468,33 +474,44 @@ class Botonera
         {
             string p = Environment.ExpandEnvironmentVariables(path ?? "");
             if (p.Length == 0) { Log("launch vacio (sin configurar)"); return; }
-            var psi = new ProcessStartInfo(p); psi.UseShellExecute = true;
-            if (!string.IsNullOrEmpty(args)) psi.Arguments = args;
-            try { string d = Path.GetDirectoryName(p); if (!string.IsNullOrEmpty(d) && Directory.Exists(d)) psi.WorkingDirectory = d; } catch { }
-            Process.Start(psi); Log("launch OK: " + p);
+            string pn = TargetProcName(p, args);
+            if (pn.Equals("Discord", StringComparison.OrdinalIgnoreCase) && Process.GetProcessesByName("Discord").Length > 0)
+            {
+                Process.Start(new ProcessStartInfo("discord://-/channels/@me") { UseShellExecute = true });
+                Log("launch Discord (tray) OK");
+            }
+            else
+            {
+                var psi = new ProcessStartInfo(p); psi.UseShellExecute = true;
+                if (!string.IsNullOrEmpty(args)) psi.Arguments = args;
+                try { string d = Path.GetDirectoryName(p); if (!string.IsNullOrEmpty(d) && Directory.Exists(d)) psi.WorkingDirectory = d; } catch { }
+                Process.Start(psi); Log("launch OK: " + p);
+            }
             if (screen == "secondary")
             {
-                string pn = TargetProcName(p, args);
                 new Thread(delegate() { MoveToSecondary(pn); }) { IsBackground = true }.Start();
             }
         }
         catch (Exception e) { Log("launch ERROR " + path + ": " + e.Message); }
     }
-    static void OpenUrl(string url)
+    static void OpenUrl(string url, string screen = "")
     {
         try
         {
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             Log("url OK: " + url);
+            bool isDiscord = url.StartsWith("discord:", StringComparison.OrdinalIgnoreCase);
+            bool isSteam = url.StartsWith("steam:", StringComparison.OrdinalIgnoreCase);
             ThreadPool.QueueUserWorkItem(delegate
             {
-                for (int intento = 0; intento < 2; intento++)
+                for (int intento = 0; intento < 3; intento++)
                 {
-                    Thread.Sleep(intento == 0 ? 350 : 550);
+                    Thread.Sleep(intento == 0 ? 400 : 600);
                     try
                     {
+                        string[] names = isDiscord ? new string[] { "Discord" } : (isSteam ? new string[] { "steamwebhelper", "steam" } : new string[] { "chrome", "msedge", "firefox", "brave" });
                         IntPtr h = IntPtr.Zero;
-                        foreach (var name in new string[] { "chrome", "msedge", "firefox", "brave" })
+                        foreach (var name in names)
                         {
                             foreach (var p in Process.GetProcessesByName(name))
                             {
@@ -502,7 +519,12 @@ class Botonera
                             }
                             if (h != IntPtr.Zero) break;
                         }
-                        if (h != IntPtr.Zero) ForceFront(h);
+                        if (h != IntPtr.Zero)
+                        {
+                            if (screen == "secondary") PlaceOnSecondary(h);
+                            else ForceFront(h);
+                            break;
+                        }
                     }
                     catch { }
                 }
@@ -538,7 +560,7 @@ class Botonera
         switch (a.type)
         {
             case "launch": Launch(a.val, a.args, a.screen); break;
-            case "url":    OpenUrl(a.val); break;
+            case "url":    OpenUrl(a.val, a.screen); break;
             case "key":    SendKeys(a.val); break;
             case "vol":    Volume(a.val); break;
             case "appvol": AppVolume(a.val, a.args); break;
@@ -1473,6 +1495,7 @@ class Botonera
         try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)768; } catch { }   // TLS 1.2/1.1 para hablar con GitHub
         ReadLocalVer();
         LoadConfig(true);
+        SystemEvents.SessionEnding += delegate { try { Log("Windows apagandose -> apagando celular..."); Run(Adb, "shell reboot -p"); } catch { } };
         Listener = new HttpListener();
         try
         {
