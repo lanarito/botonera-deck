@@ -18,6 +18,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web.Script.Serialization;
+using System.Windows.Automation;
 using System.Windows.Forms;
 using System.IO.Compression;
 
@@ -494,10 +495,56 @@ class Botonera
         }
         catch (Exception e) { Log("launch ERROR " + path + ": " + e.Message); }
     }
+    static string[] TabKeywords(string url)
+    {
+        string u = (url ?? "").ToLowerInvariant();
+        if (u.Contains("youtube.com")) return new string[] { "youtube" };
+        if (u.Contains("mail.google.com")) return new string[] { "gmail", "recibidos", "inbox" };
+        if (u.Contains("web.whatsapp.com")) return new string[] { "whatsapp" };
+        if (u.Contains("google.com")) return new string[] { "google", "nueva pestaña", "new tab" };
+        return new string[0];
+    }
+    static bool FocusExistingTab(string url, string screen)
+    {
+        string[] kws = TabKeywords(url);
+        if (kws.Length == 0) return false;
+        try
+        {
+            var cond = new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem);
+            foreach (var name in new string[] { "chrome", "msedge", "brave", "firefox", "opera" })
+            {
+                foreach (var p in Process.GetProcessesByName(name))
+                {
+                    if (p.MainWindowHandle == IntPtr.Zero) continue;
+                    var root = AutomationElement.FromHandle(p.MainWindowHandle);
+                    var tabs = root.FindAll(TreeScope.Descendants, cond);
+                    foreach (AutomationElement t in tabs)
+                    {
+                        string tn = (t.Current.Name ?? "").ToLowerInvariant();
+                        foreach (var kw in kws)
+                        {
+                            if (tn.Contains(kw))
+                            {
+                                object pat;
+                                if (t.TryGetCurrentPattern(SelectionItemPattern.Pattern, out pat)) ((SelectionItemPattern)pat).Select();
+                                if (screen == "secondary") PlaceOnSecondary(p.MainWindowHandle);
+                                else ForceFront(p.MainWindowHandle);
+                                Log("pestana existente OK: " + t.Current.Name);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
+        return false;
+    }
     static void OpenUrl(string url, string screen = "")
     {
         try
         {
+            if (FocusExistingTab(url, screen)) return;
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             Log("url OK: " + url);
             bool isDiscord = url.StartsWith("discord:", StringComparison.OrdinalIgnoreCase);

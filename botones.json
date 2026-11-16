@@ -42,7 +42,7 @@
         { "id": "ac_camara", "label": "CÁMARA", "icon": "icons/em_camera.png", "type": "key", "val": "f1" },
         { "id": "ac_mirar_izq", "label": "MIRAR ←", "icon": "icons/em_lookleft.png", "type": "key", "val": "q", "hold": true },
         { "id": "ac_mirar_der", "label": "MIRAR →", "icon": "icons/em_lookright.png", "type": "key", "val": "e", "hold": true },
-        { "id": "ac_fov_mas", "label": "FOV +", "icon": "icons/em_fovplus.png", "type": "key", "val": "num+", "hold": true },
+        { "id": "ac_fov_mas", "label": "FOV +", "icon": "icons/em_fovplus.png", "type": "key", "val": "f20", "hold": true },
         { "id": "ac_fov_menos", "label": "FOV −", "icon": "icons/em_fovminus.png", "type": "key", "val": "num-", "hold": true },
         { "id": "ac_cam_sube", "label": "CÁM ↑", "icon": "icons/em_camup.png", "type": "key", "val": "num8", "hold": true },
         { "id": "ac_cam_baja", "label": "CÁM ↓", "icon": "icons/em_camdown.png", "type": "key", "val": "num2", "hold": true },
