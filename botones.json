@@ -65,7 +65,9 @@
         { "id": "ac_captura", "label": "CAPTURA", "icon": "icons/em_screenshot.png", "type": "key", "val": "f8" },
         { "id": "ac_clip", "label": "GUARDAR CLIP", "icon": "icons/em_clip.png", "type": "key", "val": "ctrl+shift+s" },
         { "id": "ac_pausa", "label": "PAUSA", "icon": "icons/em_pause.png", "type": "key", "val": "f19" },
-        { "id": "ac_setup", "label": "SETUP AUTO", "icon": "icons/em_setup.png", "type": "key", "val": "f17" }
+        { "id": "ac_setup", "label": "SETUP AUTO", "icon": "icons/em_setup.png", "type": "key", "val": "f17" },
+        { "id": "ac_vol_dn", "label": "AC VOL −", "icon": "icons/em_volmin.png", "type": "appvol", "val": "acs", "args": "down" },
+        { "id": "ac_vol_up", "label": "AC VOL +", "icon": "icons/em_volplus.png", "type": "appvol", "val": "acs", "args": "up" }
       ]
     },
     {
