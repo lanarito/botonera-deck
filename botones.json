@@ -33,7 +33,9 @@
         { "id": "dc_cavalli", "label": "CAVALLI", "icon": "icons/dc_1201912119772053584.png", "type": "url", "val": "discord://-/channels/1201912119772053584", "screen": "secondary" },
         { "id": "dc_srw", "label": "SRW", "icon": "icons/dc_597803720717107200.png", "type": "url", "val": "discord://-/channels/597803720717107200", "screen": "secondary" },
         { "id": "dc_aimax", "label": "AIMAX", "icon": "icons/dc_1233217808226058240.png", "type": "url", "val": "discord://-/channels/1233217808226058240", "screen": "secondary" },
-        { "id": "dc_ama", "label": "AMA", "icon": "icons/dc_1292849379576905790.png", "type": "url", "val": "discord://-/channels/1292849379576905790", "screen": "secondary" }
+        { "id": "dc_ama", "label": "AMA", "icon": "icons/dc_1292849379576905790.png", "type": "url", "val": "discord://-/channels/1292849379576905790", "screen": "secondary" },
+        { "id": "dc_vol_dn", "label": "DC VOL −", "icon": "icons/em_volmin.png", "type": "appvol", "val": "Discord", "args": "down" },
+        { "id": "dc_vol_up", "label": "DC VOL +", "icon": "icons/em_volplus.png", "type": "appvol", "val": "Discord", "args": "up" }
       ]
     },
     {
